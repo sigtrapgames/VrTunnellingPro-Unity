@@ -1,0 +1,25 @@
+﻿Shader "VrTunnellingPro/Cage/Opaque Fogged" {
+	Properties {
+		_MainTex ("Texture", 2D) = "white" {}
+		_Color ("Color", Color) = (1,1,1,1)
+		_Brightness ("Brightness", Float) = 1
+	}
+	SubShader {
+		Tags { "RenderType"="Opaque" "Queue"="Geometry" }
+		LOD 100
+
+		Pass {
+			CGPROGRAM
+			#pragma vertex vertFog
+			#pragma fragment frag
+			#include "CageCommon.cginc"
+			
+			fixed3 frag (v2fFog i) : SV_Target {
+				fixed3 col = tex2D(_MainTex, i.uv) * _Color * _Brightness;
+				VRTP_APPLY_FOG(col, i);
+				return col;
+			}
+			ENDCG
+		}
+	}
+}

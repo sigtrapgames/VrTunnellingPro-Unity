@@ -1,0 +1,69 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed489b29026f80d43be29fc3158c6078, type: 3}
+  m_Name: ExamplePreset_MaskCage
+  m_EditorClassIdentifier: 
+  _overrideAll: 0
+  _effectColor: {r: 0, g: 0, b: 0, a: 1}
+  _overrideEffectColor: 1
+  _applyColorToBackground: 0
+  _overrideApplyColorToBackground: 1
+  _skybox: {fileID: 0}
+  _overrideSkybox: 0
+  _angularVelocity:
+    _use: 0
+    _strength: 1
+    _min: 0
+    _max: 0
+    _smoothing: 0
+  _overrideAngularVelocity: 0
+  _acceleration:
+    _use: 0
+    _strength: 1
+    _min: 0
+    _max: 0
+    _smoothing: 0
+  _overrideAcceleration: 0
+  _velocity:
+    _use: 0
+    _strength: 1
+    _min: 0
+    _max: 0
+    _smoothing: 0
+  _overrideVelocity: 0
+  _effectFeather: 0.1
+  _overrideEffectFeather: 1
+  _backgroundMode: 3
+  _overrideBackgroundMode: 1
+  _cageDownsample: 0
+  _overrideCageDownsample: 0
+  _cageAntiAliasing: 0
+  _overrideCageAntiAliasing: 0
+  _cageUpdateEveryFrame: 0
+  _overrideCageUpdateEveryFrame: 0
+  _cageFogDensity: 0.05
+  _overrideCageFogDensity: 0
+  _cageFogPower: 2
+  _overrideCageFogPower: 0
+  _cageFogBlend: 1
+  _overrideCageFogBlend: 0
+  _maskMode: 1
+  _overrideMaskMode: 1
+  _blurDownsample: 3
+  _overrideBlurDownsample: 0
+  _blurDistance: 3
+  _overrideBlurDistance: 0
+  _blurPasses: 3
+  _overrideBlurPasses: 0
+  _blurSamples: 0
+  _overrideBlurSamples: 0
+  _irisZRejection: 1
+  _overrideIrisZRejection: 1

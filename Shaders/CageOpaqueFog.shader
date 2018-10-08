@@ -14,9 +14,9 @@
 			#pragma fragment frag
 			#include "CageCommon.cginc"
 			
-			fixed3 frag (v2fFog i) : SV_Target {
-				fixed3 col = tex2D(_MainTex, i.uv) * _Color * _Brightness;
-				VRTP_APPLY_FOG(col, i);
+			fixed4 frag (v2fFog i) : SV_Target {
+				fixed4 col = tex2D(_MainTex, i.uv) * _Color * _Brightness;
+				VRTP_APPLY_FOG(col.rgb, i);
 				return col;
 			}
 			ENDCG

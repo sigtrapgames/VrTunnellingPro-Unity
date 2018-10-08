@@ -8,24 +8,31 @@ namespace Sigtrap.VrTunnellingPro.Editors {
 	public class VrTunnellingProPresetEditor : VrTunnellingProPresetEditorBase {
 		protected override string HEADER_LOGO_NAME {get {return "VrTunnellingProPresetLogo";}}
 
-		SerializedPropertyPair _pBackgroundMode;
+		protected SerializedPropertyPair _pEffectOverlay = new SerializedPropertyPair("_effectOverlay");
+		SerializedPropertyPair _pBackgroundMode = new SerializedPropertyPair("_backgroundMode");
 
-		SerializedPropertyPair _pCageDownsample;
-		SerializedPropertyPair _pCageAa;
-		SerializedPropertyPair _pCageUpdate;
+		SerializedPropertyPair _pCageDownsample = new SerializedPropertyPair("_cageDownsample");
+		SerializedPropertyPair _pCageAa = new SerializedPropertyPair("_cageAntiAliasing");
+		SerializedPropertyPair _pCageUpdate = new SerializedPropertyPair("_cageUpdateEveryFrame");
 
-		SerializedPropertyPair _pCageFogDensity;
-		SerializedPropertyPair _pCageFogPower;
-		SerializedPropertyPair _pCageFogBlend;
+		SerializedPropertyPair _pCageFogDensity = new SerializedPropertyPair("_cageFogDensity");
+		SerializedPropertyPair _pCageFogPower = new SerializedPropertyPair("_cageFogPower");
+		SerializedPropertyPair _pCageFogBlend = new SerializedPropertyPair("_cageFogBlend");
 
-		SerializedPropertyPair _pMaskMode;
+		SerializedPropertyPair _pMaskMode = new SerializedPropertyPair("_maskMode");
 
-		SerializedPropertyPair _pBlurDownsample;
-		SerializedPropertyPair _pBlurDistance;
-		SerializedPropertyPair _pBlurPasses;
-		SerializedPropertyPair _pBlurSamples;
+		SerializedPropertyPair _pBlurDownsample = new SerializedPropertyPair("_blurDownsample");
+		SerializedPropertyPair _pBlurDistance = new SerializedPropertyPair("_blurDistance");
+		SerializedPropertyPair _pBlurPasses = new SerializedPropertyPair("_blurPasses");
+		SerializedPropertyPair _pBlurSamples = new SerializedPropertyPair("_blurSamples");
 
-		SerializedPropertyPair _pIrisZRejection;
+		SerializedPropertyPair _pCounterVelocityMode = new SerializedPropertyPair("_counterVelocityMode");
+		SerializedPropertyPair _pCounterVelocityResetDistance = new SerializedPropertyPair("_counterVelocityResetDistance");
+		SerializedPropertyPair _pCounterVelocityResetTime = new SerializedPropertyPair("_counterVelocityResetTime");
+		SerializedPropertyPair _pCounterVelocityStrength = new SerializedPropertyPair("_counterVelocityStrength");
+		SerializedPropertyPair _pCounterVelocityPerAxis = new SerializedPropertyPair("_counterVelocityPerAxis");
+
+		SerializedPropertyPair _pIrisZRejection = new SerializedPropertyPair("_irisZRejection");
 
 		static readonly GUIContent _gcDownsample = new GUIContent("Downsample");
 		static readonly GUIContent _gcMsaa = new GUIContent("MSAA");
@@ -43,27 +50,16 @@ namespace Sigtrap.VrTunnellingPro.Editors {
 		static bool _showBlurSettings = true;
 
 		protected override void CacheProperties(){
-			_pBackgroundMode = new SerializedPropertyPair(serializedObject, "_backgroundMode");
-
-			_pCageDownsample = new SerializedPropertyPair(serializedObject, "_cageDownsample");
-			_pCageAa = new SerializedPropertyPair(serializedObject, "_cageAntiAliasing");
-			_pCageUpdate = new SerializedPropertyPair(serializedObject, "_cageUpdateEveryFrame");
-
-			_pCageFogDensity = new SerializedPropertyPair(serializedObject, "_cageFogDensity");
-			_pCageFogPower = new SerializedPropertyPair(serializedObject, "_cageFogPower");
-			_pCageFogBlend = new SerializedPropertyPair(serializedObject, "_cageFogBlend");
-
-			_pMaskMode = new SerializedPropertyPair(serializedObject, "_maskMode");
-
-			_pBlurDownsample = new SerializedPropertyPair(serializedObject, "_blurDownsample");
-			_pBlurDistance = new SerializedPropertyPair(serializedObject, "_blurDistance");
-			_pBlurPasses = new SerializedPropertyPair(serializedObject, "_blurPasses");
-			_pBlurSamples = new SerializedPropertyPair(serializedObject, "_blurSamples");
-
-			_pIrisZRejection = new SerializedPropertyPair(serializedObject, "_irisZRejection");
+			InitSpps(
+				_pEffectOverlay, _pBackgroundMode, _pCageDownsample, _pCageAa, _pCageUpdate,
+				_pCageFogDensity, _pCageFogPower, _pCageFogBlend, _pMaskMode,
+				_pBlurDownsample, _pBlurDistance, _pBlurPasses, _pBlurSamples,
+				_pCounterVelocityMode, _pCounterVelocityResetDistance, _pCounterVelocityResetTime,
+				_pCounterVelocityStrength, _pCounterVelocityPerAxis, _pIrisZRejection
+			);
 		}
 		protected override void DrawSettings(){
-			_showEffectSettings = EditorGUILayout.Foldout(_showEffectSettings, "Effect Settings", EditorStyles.boldFont);
+			_showEffectSettings = EditorGUILayout.Foldout(_showEffectSettings, "Effect Settings", VrtpStyles.sectionFoldout);
 			if (_showEffectSettings) {
 				++EditorGUI.indentLevel;
 				DrawProperty(_pEffectColor);
@@ -78,7 +74,7 @@ namespace Sigtrap.VrTunnellingPro.Editors {
 			}
 
 			EditorGUILayout.Space();
-			_showCageSettings = EditorGUILayout.Foldout(_showCageSettings, "Cage Settings", EditorStyles.boldFont);
+			_showCageSettings = EditorGUILayout.Foldout(_showCageSettings, "Cage Settings", VrtpStyles.sectionFoldout);
 			if (_showCageSettings) {
 				++EditorGUI.indentLevel;
 				DrawProperty(_pCageDownsample, false, _gcDownsample);
@@ -88,7 +84,7 @@ namespace Sigtrap.VrTunnellingPro.Editors {
 			}
 
 			EditorGUILayout.Space();
-			_showFogSettings = EditorGUILayout.Foldout(_showFogSettings, "Cage Fog", EditorStyles.boldFont);
+			_showFogSettings = EditorGUILayout.Foldout(_showFogSettings, "Cage Fog", VrtpStyles.sectionFoldout);
 			if (_showFogSettings) {
 				++EditorGUI.indentLevel;
 				DrawProperty(_pCageFogDensity, false, _gcDensity);
@@ -98,7 +94,7 @@ namespace Sigtrap.VrTunnellingPro.Editors {
 			}
 
 			EditorGUILayout.Space();
-			_showBlurSettings = EditorGUILayout.Foldout(_showBlurSettings, "Blur Settings", EditorStyles.boldFont);
+			_showBlurSettings = EditorGUILayout.Foldout(_showBlurSettings, "Blur Settings", VrtpStyles.sectionFoldout);
 			if (_showBlurSettings) {
 				++EditorGUI.indentLevel;
 				DrawProperty(_pBlurDownsample, false, _gcDownsample);
@@ -113,6 +109,16 @@ namespace Sigtrap.VrTunnellingPro.Editors {
 
 			EditorGUILayout.Space();
 			DrawMotionSettings();
+		}
+
+		protected override void DrawCounterMotionSettings(){
+			base.DrawCounterMotionSettings();
+			EditorGUILayout.Space();
+			DrawProperty(_pCounterVelocityMode);
+			DrawProperty(_pCounterVelocityResetDistance);
+			DrawProperty(_pCounterVelocityResetTime);
+			DrawProperty(_pCounterVelocityStrength);
+			DrawProperty(_pCounterVelocityPerAxis);
 		}
 	}
 }

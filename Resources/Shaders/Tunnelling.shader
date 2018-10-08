@@ -23,6 +23,7 @@
 			#pragma multi_compile __ TUNNEL_CONSTANT
 			#pragma multi_compile __ TUNNEL_INVERT_MASK
 			#pragma multi_compile __ TUNNEL_SKYBOX
+			#pragma multi_compile __ TUNNEL_OVERLAY
 			#include "UnityCG.cginc"
 			#include "TunnellingUtils.cginc"
 
@@ -49,6 +50,7 @@
 			sampler2D _MaskTex;
 			float _FxInner;
 			float _FxOuter;
+			float _Overlay;
 
 			fixed3 frag (v2f i) : SV_Target {
 				float2 uv = UnityStereoScreenSpaceUVAdjust(i.uv, _MainTex_ST);
@@ -71,11 +73,15 @@
 					bkg.rgb = _Color.rgb;
 				#endif
 
+				// If CAGE_ONLY use rt alpha
+				// Otherwise use 1
+				#if !TUNNEL_OVERLAY				
+					bkg.a = 1;
+				#endif
+
 				// Sample mask
 				#if TUNNEL_MASK
-					bkg.a = tex2D(_MaskTex, uv).r;
-				#else
-					bkg.a = 1;
+					bkg.a *= tex2D(_MaskTex, uv).r;
 				#endif
 
 				// Apply color alpha at the end as final factor
@@ -90,7 +96,7 @@
 				float radius = length(coords.xy / (_ScreenParams.xy/2)) / 2;
 				float fxMin = (1 - _FxInner);
 				float fxMax = (1 - _FxOuter);
-				float r = saturate((radius - fxMin) / (fxMax - fxMin));
+				float r = max(_Overlay, saturate((radius - fxMin) / (fxMax - fxMin)));
 
 				#if TUNNEL_CONSTANT
 					// Add constant windows/portals to vignette

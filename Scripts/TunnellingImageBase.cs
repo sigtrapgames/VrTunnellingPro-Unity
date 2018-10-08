@@ -27,12 +27,30 @@ namespace Sigtrap.VrTunnellingPro {
 		const string PROP_BKGRT = "_BkgTex";
 		const string PROP_MASKRT = "_MaskTex";
 		const string PROP_BLUR = "_Blur";
+		const string PROP_OVERLAY = "_Overlay";
 
 		const string PROP_BLUR_OFFSETS = "_Offsets";
 
 		const float BLUR_OFFSET_1 = 1.33333333f;
 		static readonly float[] BLUR_OFFSETS_9 = new float[]{1.38461538f, 3.23076923f};
 		static readonly float[] BLUR_OFFSETS_13 = new float[]{1.41176470f, 3.29411764f, 5.17647058f};
+
+		/// <summary>
+		/// Global shader parameter for world-to-cage vertex matrix.<br />
+		/// Used in counter-motion triplanar shaders.
+		/// </summary>
+		public const string GLOBAL_PROP_WORLD2CAGE = "_VRTP_WorldToCage";
+		/// <summary>
+		/// Global shader parameter for world-to-cage normals matrix.<br />
+		/// Used in counter-motion triplanar shaders.
+		/// </summary>
+		public const string GLOBAL_PROP_WORLD2CAGE_NORMAL = "_VRTP_WorldToCageNormal";
+		/// <summary>
+		/// Global shader parameter for relative position offset between cage and world.
+		/// In other words, how far has player artificially locomoted from reference point?
+		/// Used in counter-motion triplanar shaders.
+		/// </summary>
+		public const string GLOBAL_PROP_CAGEPOS = "_VRTP_CagePos";
 		#endregion
 
 		public enum BlurKernel {
@@ -49,6 +67,20 @@ namespace Sigtrap.VrTunnellingPro {
 			/// </summary>
 			THIRTEEN = 2
 		}
+		public enum CounterVelocityMode {
+			/// <summary>
+			/// No counter-velocity effect
+			/// </summmary>
+			OFF,
+			/// <summary>
+			/// Counter-velocity effect uses Cage Counter Motion triplanar shaders
+			/// </summary>
+			SHADER,
+			/// <summary>
+			/// Counter-vloecity effect moves cage
+			/// </summary>
+			REAL
+		}
 
 		/// <summary>
 		/// Singleton instance.<br />
@@ -61,10 +93,16 @@ namespace Sigtrap.VrTunnellingPro {
 		#region Serialized
 		#region Effect
 		/// <summary>
-		/// Determines what is rendered over the vignette effect.
+		/// Determines what is rendered in the vignette effect.
 		/// </summary>
-		[Tooltip("Determines what is rendered over the vignette effect.")]
+		[Tooltip("Determines what is rendered in the vignette effect.")]
 		public BackgroundMode backgroundMode = BackgroundMode.COLOR;
+		/// <summary>
+		/// Allows a persistent overlay of the effect across the entire view.<br />
+		/// Applies to SKYBOX, CAGE_COLOUR, CAGE_SKYBOX modes.
+		/// </summary>
+		[Range(0f,1f)][Tooltip("Allows a persistent overlay of the effect across the entire view.")]
+		public float effectOverlay = 0;
 		#endregion
 
 		#region Cage
@@ -142,6 +180,37 @@ namespace Sigtrap.VrTunnellingPro {
 		public BlurKernel blurSamples;
 		#endregion
 
+		#region Counter-Motion
+		/// <summary>
+		/// Choose counter-velocity effect implementation, or disable.<br />
+		/// SHADER mode requires cage objects to use Cage Counter Motion shaders.
+		/// </summary>
+		public CounterVelocityMode counterVelocityMode = CounterVelocityMode.OFF;
+		/// <summary>
+		/// If <see cref="counterVelocityMode"/> is REAL, reset cage position and rotation when it has travelled this far.<br />
+		/// If <= 0, no distance-based reset.
+		/// </summary>
+		[Tooltip("Reset cage after this distance.\nSet 0 for no distance-based reset.")]
+		public float counterVelocityResetDistance = 0;
+		/// <summary>
+		/// If <see cref="counterVelocityMode"/> is REAL, reset cage position and rotation after this time.<br />
+		/// If <= 0, no time-based reset.
+		/// </summary>
+		[Tooltip("Reset cage after this time.\nSet 0 for no distance-based reset.")]
+		public float counterVelocityResetTime = 0;
+		/// <summary>
+		/// Scale counter-velocity relative to <see cref="motionTarget"/> motion.
+		/// </summary>
+		[Range(0f,COUNTER_STRENGTH_MAX)][Tooltip("Scale counter-velocity relative to Motion Target velocity.")]
+		public float counterVelocityStrength = 1f;
+		/// <summary>
+		/// Scale counter-velocity on individual axes.<br />
+		/// Multiplied by <see cref="counterVelocityStrength"/>.
+		/// </summary>
+		[Tooltip("Scale counter-velocity on individual axes.\nMultiplied by Counter Velocity Strength.")]
+		public Vector3 counterVelocityPerAxis = Vector3.one;
+		#endregion
+
 		#region Optimisation
 		/// <summary>
 		/// At start of rendering, fill Z buffer where effect will be to save fillrate on drawing world.<br />
@@ -156,13 +225,23 @@ namespace Sigtrap.VrTunnellingPro {
 		/// <summary>
 		/// Is effect currently using/rendering a mask?
 		/// </summary>
-		public bool useMask {get {return maskMode != MaskMode.OFF;}}
+		public bool usingMask {get {return maskMode != MaskMode.OFF;}}
 		/// <summary>
 		/// Is effect currently using/rendering the cage?
 		/// </summary>
-		public bool useCage {get {return backgroundMode == BackgroundMode.CAGE_COLOR || backgroundMode == BackgroundMode.CAGE_SKYBOX;}}
-		private bool _useCageRt {get {return useCage || backgroundMode == BackgroundMode.BLUR;}}
-		private bool _canDrawIris {get {return !useMask && backgroundMode != BackgroundMode.BLUR && effectColor.a == 1;}}
+		public bool usingCage {
+			get {
+				return backgroundMode == BackgroundMode.CAGE_COLOR || 
+				backgroundMode == BackgroundMode.CAGE_SKYBOX ||
+				backgroundMode == BackgroundMode.CAGE_ONLY;
+			}}
+		private bool _usingCageRt {get {return usingCage || backgroundMode == BackgroundMode.BLUR;}}
+		private bool _canDrawIris {
+			get {
+				return !usingMask && backgroundMode != BackgroundMode.BLUR && 
+				backgroundMode != BackgroundMode.CAGE_ONLY && effectColor.a == 1;
+			}
+		}
 		private bool _drawIris {get {return irisZRejection && _canDrawIris;}}
 
 		protected abstract CameraEvent _maskCmdEvt { get; }
@@ -203,11 +282,15 @@ namespace Sigtrap.VrTunnellingPro {
 		private BlurKernel _lastBlurKernel;
 		private bool _wasDrawingIrisEarly = false;
 		private bool _camHasIrisBuffer = false;
+		private CounterVelocityMode _lastCvMode = CounterVelocityMode.OFF;
+		private Vector3 _cmPos, _cageInitialPosLocal;
+		private float _timeToResetCounterVelocity;
 		#endregion
 
 		#region Shader property IDs
-		private int _propColor, _propBkgRt, _propMaskRt, _propSkybox;
+		private int _propColor, _propBkgRt, _propMaskRt, _propSkybox, _propOverlay;
 		private int _propBlur, _propBlurOffsets;
+		private int _globPropWorld2Cage, _globPropWorld2CageNormal, _globPropCagePos;
 		#endregion
 		#endregion
 
@@ -224,8 +307,13 @@ namespace Sigtrap.VrTunnellingPro {
 			_propBkgRt = Shader.PropertyToID(PROP_BKGRT);
 			_propMaskRt = Shader.PropertyToID(PROP_MASKRT);
 			_propSkybox = Shader.PropertyToID(PROP_SKYBOX);
+			_propOverlay = Shader.PropertyToID(PROP_OVERLAY);
 			_propBlur = Shader.PropertyToID(PROP_BLUR);
 			_propBlurOffsets = Shader.PropertyToID(PROP_BLUR_OFFSETS);
+
+			_globPropWorld2Cage = Shader.PropertyToID(GLOBAL_PROP_WORLD2CAGE);
+			_globPropWorld2CageNormal = Shader.PropertyToID(GLOBAL_PROP_WORLD2CAGE_NORMAL);
+			_globPropCagePos = Shader.PropertyToID(GLOBAL_PROP_CAGEPOS);
 
 			_matTunnel = new Material(Shader.Find(PATH_SHADERS + PATH_TUNNELSHADER));
 			_matMask = new Material(Shader.Find(PATH_SHADERS + PATH_MASKSHADER));
@@ -245,6 +333,7 @@ namespace Sigtrap.VrTunnellingPro {
 
 			if (_cageParent != null) {
 				_cageParent.SetActive(false);
+				_cageInitialPosLocal = _cageParent.transform.localPosition;
 			}
 		}
 		protected override void OnEnable(){
@@ -252,7 +341,7 @@ namespace Sigtrap.VrTunnellingPro {
 			UpdateCage();
 
 			// Add command buffers back to camera, but only if we've already set everything up properly
-			if (useMask && _maskCmd != null){
+			if (usingMask && _maskCmd != null){
 				ToggleMaskCommandBuffer(true);
 			}
 			if (_drawIris && _irisCmd != null){
@@ -356,12 +445,21 @@ namespace Sigtrap.VrTunnellingPro {
 			}
 		}
 
+		public override void ResetCounterMotion(){
+			base.ResetCounterMotion();
+			_cmPos = Vector3.zero;
+			if (_cageParent != null){
+				_cageParent.transform.localPosition = _cageInitialPosLocal;
+			}
+		}
+
 		/// <summary>
 		/// Override some or all settings using a TunnellingPreset asset.
 		/// </summary>
 		public void ApplyPreset(TunnellingPreset p){
 			ApplyPresetBase(p);
 
+			if (p.overrideEffectOverlay) effectOverlay = p.effectOverlay;
 			if (p.overrideBackgroundMode) backgroundMode = p.backgroundMode;
 
 			if (p.overrideCageDownsample) cageDownsample = p.cageDownsample;
@@ -378,6 +476,12 @@ namespace Sigtrap.VrTunnellingPro {
 			if (p.overrideBlurPasses) blurPasses = p.blurPasses;
 			if (p.overrideBlurSamples) blurSamples = p.blurSamples;
 
+			if (p.overrideCounterVelocityMode) counterVelocityMode = p.counterVelocityMode;
+			if (p.overrideCounterVelocityResetDistance) counterVelocityResetDistance = p.counterVelocityResetDistance;
+			if (p.overrideCounterVelocityResetTime) counterVelocityResetTime = p.counterVelocityResetTime;
+			if (p.overrideCounterVelocityStrength) counterVelocityStrength = p.counterVelocityStrength;
+			if (p.overrideCounterVelocityPerAxis) counterVelocityPerAxis = p.counterVelocityPerAxis;
+
 			if (p.overrideIrisZRejection) irisZRejection = p.irisZRejection;
 		}
 		#endregion
@@ -390,6 +494,7 @@ namespace Sigtrap.VrTunnellingPro {
 			float motion = CalculateMotion(Time.deltaTime);
 			_matTunnel.SetFloat(_propFxInner, motion);
 			_matTunnel.SetFloat(_propFxOuter, motion-effectFeather);
+			_matTunnel.SetFloat(_propOverlay, effectOverlay);
 
 			switch (backgroundMode){
 				case BackgroundMode.COLOR:
@@ -415,7 +520,7 @@ namespace Sigtrap.VrTunnellingPro {
 			}
 
 			// Update cage objects if necessary
-			if (useCage && cageUpdateEveryFrame){
+			if (usingCage && cageUpdateEveryFrame){
 				UpdateCage();
 			}
 
@@ -442,6 +547,25 @@ namespace Sigtrap.VrTunnellingPro {
 				_matIris.SetFloat(_propFxOuter, inner-effectFeather);
 			}
 
+			// Check counter-velocity modes
+			bool resetCm = false;
+			if (_lastCvMode != counterVelocityMode){
+				resetCm = true;
+				_lastCvMode = counterVelocityMode;
+			}
+			if (counterVelocityMode == CounterVelocityMode.REAL){
+				if (counterVelocityResetTime > 0 && Time.time >= _timeToResetCounterVelocity){
+					resetCm = true;
+					_timeToResetCounterVelocity = Time.time + counterVelocityResetTime;
+				}
+				if (counterVelocityResetDistance > 0 && _cmPos.sqrMagnitude >= (counterVelocityResetDistance * counterVelocityResetDistance)){
+					resetCm = true;
+				}
+			}  
+			if (resetCm){
+				ResetCounterMotion();
+			}
+
 			// Fog
 			Shader.SetGlobalFloat(_globPropFogDensity, cageFogDensity);
 			Shader.SetGlobalFloat(_globPropFogPower, cageFogPower);
@@ -453,6 +577,15 @@ namespace Sigtrap.VrTunnellingPro {
 
 		void OnPreRender(){
 			if (!_hasDrawnThisFrame) {
+				if (_cageParent != null){
+					Shader.SetGlobalMatrix(_globPropWorld2Cage, _cageParent.transform.worldToLocalMatrix);
+					Shader.SetGlobalMatrix(_globPropWorld2CageNormal, _cageParent.transform.localToWorldMatrix.transpose);
+					if (counterVelocityMode == CounterVelocityMode.SHADER){
+						Shader.SetGlobalVector(_globPropCagePos, _cmPos);
+					} else {
+						Shader.SetGlobalVector(_globPropCagePos, Vector3.zero);
+					}
+				}
 				UpdateEyeMatrices();
 				ApplyEyeMatrices(_matTunnel);
 				ApplyEyeMatrices(_matIris);
@@ -464,16 +597,16 @@ namespace Sigtrap.VrTunnellingPro {
 				UpdateRenderTextures(src.width, src.height, src.antiAliasing);
 			}
 
-			if (useMask || _useCageRt){
-				if (_useCageRt) {
+			if (usingMask || _usingCageRt){
+				if (_usingCageRt) {
 					// Set render target and blit bkg colour
 					Graphics.SetRenderTarget(_cageRt);
 					Color bkg = effectColor;
-					bkg.a = 1;
+					bkg.a = backgroundMode == TunnellingBase.BackgroundMode.CAGE_ONLY ? 0 : 1;
 					GL.Clear(true, true, bkg);
 				}
 
-				if (useCage) {
+				if (usingCage) {
 					// Render skybox if necessary
 					if (backgroundMode == BackgroundMode.CAGE_SKYBOX){
 						_matSkysphere.SetPass(0);
@@ -484,8 +617,11 @@ namespace Sigtrap.VrTunnellingPro {
 					for (int i = 0; i < _cageMrs.Length; ++i) {
 						MeshRenderer mr = _cageMrs[i];
 						if (mr.gameObject.activeSelf) {
-							mr.sharedMaterial.SetPass(0);
-							Graphics.DrawMeshNow(_cageMfs[i].sharedMesh, mr.localToWorldMatrix);
+							Mesh m = _cageMfs[i].sharedMesh;
+							for (int j=0; j<m.subMeshCount; ++j){
+								mr.sharedMaterials[j].SetPass(0);
+								Graphics.DrawMeshNow(m, mr.localToWorldMatrix, j);
+							}
 						}
 					}
 				}
@@ -522,6 +658,32 @@ namespace Sigtrap.VrTunnellingPro {
 			eyePrj[1][3, 3] = 0.002f;
 		}
 
+		protected override void UpdateCounterMotion(Vector3 deltaPos, Quaternion deltaRot){
+			base.UpdateCounterMotion(deltaPos, deltaRot);
+
+			Quaternion q = GetCounterRotationDelta(deltaRot);
+			_cageParent.transform.Rotate(-q.eulerAngles);
+
+			if (counterVelocityStrength > 0){
+				if (counterVelocityMode != CounterVelocityMode.OFF && counterVelocityStrength > 0){
+					Vector3 d = new Vector3(
+						deltaPos.x * counterVelocityPerAxis.x,
+						deltaPos.y * counterVelocityPerAxis.y,
+						deltaPos.z * counterVelocityPerAxis.z
+					) * counterVelocityStrength;
+					switch (counterVelocityMode){
+						case CounterVelocityMode.SHADER:
+							_cmPos += _cageParent.transform.InverseTransformVector(d);
+							break;
+						case CounterVelocityMode.REAL:
+							_cmPos += d;
+							_cageParent.transform.position = motionTarget.TransformVector(_cmPos);
+							break;
+					}
+				}
+			}
+		}
+
 		void UpdateKeywords(){
 			switch (maskMode){
 				case MaskMode.OFF:
@@ -549,16 +711,24 @@ namespace Sigtrap.VrTunnellingPro {
 				case BackgroundMode.COLOR:
 					_matTunnel.DisableKeyword(KEYWORD_BKG);
 					_matTunnel.DisableKeyword(KEYWORD_SKYBOX);
+					_matTunnel.DisableKeyword(KEYWORD_OVERLAY);
 					break;
 				case BackgroundMode.SKYBOX:
 					_matTunnel.DisableKeyword(KEYWORD_BKG);
 					_matTunnel.EnableKeyword(KEYWORD_SKYBOX);
+					_matTunnel.DisableKeyword(KEYWORD_OVERLAY);
 					break;
 				case BackgroundMode.CAGE_COLOR:
 				case BackgroundMode.CAGE_SKYBOX:
 				case BackgroundMode.BLUR:
 					_matTunnel.EnableKeyword(KEYWORD_BKG);
 					_matTunnel.DisableKeyword(KEYWORD_SKYBOX);
+					_matTunnel.DisableKeyword(KEYWORD_OVERLAY);
+					break;
+				case BackgroundMode.CAGE_ONLY:
+					_matTunnel.EnableKeyword(KEYWORD_BKG);
+					_matTunnel.DisableKeyword(KEYWORD_SKYBOX);
+					_matTunnel.EnableKeyword(KEYWORD_OVERLAY);
 					break;
 			}
 		}
@@ -615,7 +785,7 @@ namespace Sigtrap.VrTunnellingPro {
 
 			// Update background RT
 			if (
-				_useCageRt &&
+				_usingCageRt &&
 				(changeRes || _cageRt == null || _lastCageDownsample != cageDownsample || _lastCageMsaa != cageAntiAliasing)
 			){
 				if (_cageRt != null){
@@ -641,7 +811,7 @@ namespace Sigtrap.VrTunnellingPro {
 			}
 
 			// Update mask RT
-			if (useMask && (changeRes || _maskRt == null /*|| _lastMaskMsaa != maskAntiAliasing*/)) {
+			if (usingMask && (changeRes || _maskRt == null /*|| _lastMaskMsaa != maskAntiAliasing*/)) {
 				if (_maskRt != null){
 					_maskRt.Release();
 				}
@@ -718,9 +888,9 @@ namespace Sigtrap.VrTunnellingPro {
 
 			// Update command buffer state
 			if (isActiveAndEnabled) {
-				if (_lastMaskMode == MaskMode.OFF && useMask && !_camHasMaskBuffer){
+				if (_lastMaskMode == MaskMode.OFF && usingMask && !_camHasMaskBuffer){
 					ToggleMaskCommandBuffer(true);
-				} else if (_lastMaskMode != MaskMode.OFF && !useMask && _camHasMaskBuffer){
+				} else if (_lastMaskMode != MaskMode.OFF && !usingMask && _camHasMaskBuffer){
 					ToggleMaskCommandBuffer(false);
 				}
 				_lastMaskMode = maskMode;

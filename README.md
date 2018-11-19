@@ -20,7 +20,7 @@ It works by fading out peripheral vision. The subconscious uses peripheral visio
 
 Additionally, the periphery can be replaced with static imagery to counteract motion even more strongly, "grounding" users in a static reference frame. This is called a "cage" as including a cage or grid maximises this effect.
 
-![VR Tunnelling Pro](https://media.giphy.com/media/xTZPNQUXGMwXU0476f/giphy.gif)
+![VR Tunnelling Pro](https://thumbs.gfycat.com/EntireSelfishBlackfootedferret-size_restricted.gif)
 
 ## Key Features
 * Multiple modes
@@ -50,6 +50,6 @@ We are also working on the Unreal Engine 4 version which will be available on ou
 HTML documentation (mirroring that at the official docs URL) can be generated using Doxygen. If you have Doxygen installed on Windows, you can just run `Docs~/BuildDoxygen.bat` to do so. The *Docs~* folder will be ignored by Unity, and the resulting HTML docs will be ignored by git.
 
 ## Credits
-Developed and maintained by Dr Luke Thompson ([@six_ways](https://twitter.com/six_ways) | [github](https://github.com/SixWays))
-Research and support by Tom Heath on behalf of Oculus
+Developed and maintained by Dr Luke Thompson ([@six_ways](https://twitter.com/six_ways) | [github](https://github.com/SixWays))  
+Research and support by Tom Heath on behalf of Oculus  
 Art assets by Gary Lloyd ([@garylloyd89](https://twitter.com/garylloyd89))

@@ -9,7 +9,6 @@
 samplerCUBE _Skybox;
 float4x4 _EyeProjection[2];
 float4x4 _EyeToWorld[2];
-float4 _EyeOffset;
 
 inline float4 screenCoords(float2 uv){
 	float2 c = (uv - 0.5) * 2;

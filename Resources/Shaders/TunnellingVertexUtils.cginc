@@ -18,13 +18,9 @@ v2f vert (float4 v : POSITION, fixed4 c : COLOR) {
 	o.vertex.xy = lerp(o.vertex.xy, 0, p);
 	o.vertex.z = CLIP_NEAR;
 	o.vertex.xy *= 2.4;
-	
-	// Reproject centre - only required for OpenVR
-	#if !defined(SHADER_API_GLES) && !defined(SHADER_API_GLES3)
-		float fac = saturate(c.r + c.g);	// Ignore corner verts
-		o.vertex.x -= _EyeOffset[unity_StereoEyeIndex*2] * fac;
-		o.vertex.y += _EyeOffset[(unity_StereoEyeIndex*2)+1] * fac;
-	#endif
+
+	// Reproject for asymmetric FOV
+	o.vertex.xy += mul(UNITY_MATRIX_P, half4(0,0,-CLIP_NEAR,1));
 
 	o.sPos = ComputeNonStereoScreenPos(o.vertex);
 	o.a = c.b;

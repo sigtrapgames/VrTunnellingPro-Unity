@@ -64,18 +64,20 @@
 					// Don't do skybox - cage will include it already if needed
 					bkg = tex2D(_BkgTex, uv);
 					bkg.rgb *= _Color.rgb;
+
+					// If CAGE_ONLY use rt alpha
+					// Otherwise use 1
+					#if !TUNNEL_OVERLAY				
+						bkg.a = 1;
+					#endif
 				#elif TUNNEL_SKYBOX
 					// Sample skybox cubemap
 					bkg.rgb = sampleSkybox(coords);
 					bkg.rgb *= _Color.rgb;
+					bkg.a = 1;
 				#else
 					// Just use color
 					bkg.rgb = _Color.rgb;
-				#endif
-
-				// If CAGE_ONLY use rt alpha
-				// Otherwise use 1
-				#if !TUNNEL_OVERLAY				
 					bkg.a = 1;
 				#endif
 

@@ -608,9 +608,6 @@ namespace Sigtrap.VrTunnellingPro {
 					accTgt[i] = acc * sign;
 				}
 				_tiltAccelSmoothed = Vector3.SmoothDamp(_tiltAccelSmoothed, accTgt, ref _tiltAccelSlew, tiltSmoothTime, 1000, dT);
-				if (_tiltAccelSmoothed.magnitude > 0.1f){
-					Debug.Log(_tiltAccelSmoothed);
-				}
 
 				Vector3 tilt = new Angle3(_tiltAccelSmoothed.z * tiltStrength, 0, _tiltAccelSmoothed.x * tiltStrength).eulerAcute;
 				if (tiltMaxAngles.sqrMagnitude > 0){

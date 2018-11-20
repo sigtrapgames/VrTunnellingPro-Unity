@@ -20,7 +20,7 @@ v2f vert (float4 v : POSITION, fixed4 c : COLOR) {
 	o.vertex.xy *= 2.4;
 
 	// Reproject for asymmetric FOV
-	o.vertex.xy += mul(UNITY_MATRIX_P, half4(0,0,-CLIP_NEAR,1));
+	o.vertex.xy -= mul(UNITY_MATRIX_P, half4(0,0,CLIP_FAR,1));
 
 	o.sPos = ComputeNonStereoScreenPos(o.vertex);
 	o.a = c.b;

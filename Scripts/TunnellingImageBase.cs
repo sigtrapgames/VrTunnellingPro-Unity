@@ -676,8 +676,8 @@ namespace Sigtrap.VrTunnellingPro {
 							_cmPos += _cageParent.transform.InverseTransformVector(d);
 							break;
 						case CounterVelocityMode.REAL:
-							_cmPos += d;
-							_cageParent.transform.position = motionTarget.TransformVector(_cmPos);
+							_cmPos += motionTarget.transform.InverseTransformVector(d);
+							_cageParent.transform.localPosition = _cmPos;
 							break;
 					}
 				}

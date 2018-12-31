@@ -15770,7 +15770,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   motionTarget: {fileID: 1713445504}
   effectColor: {r: 0, g: 0, b: 0, a: 1}
-  effectCoverage: 0.588
+  effectCoverage: 0.75
   effectFeather: 0.1
   effectSkybox: {fileID: 8900000, guid: 814f7c32c471f9844ac9ac3b628fd10b, type: 3}
   applyColorToBackground: 0
@@ -15793,7 +15793,7 @@ MonoBehaviour:
   useCounterMotion: 0
   counterRotationStrength: 0.5
   counterRotationPerAxis: {x: 0, y: 1, z: 0}
-  useArtificialTilt: 1
+  useArtificialTilt: 0
   tiltStrength: 2
   tiltMaxAngles: {x: 0, y: 0}
   tiltSmoothTime: 0
@@ -15814,7 +15814,7 @@ MonoBehaviour:
   blurDistance: 3
   blurPasses: 3
   blurSamples: 2
-  counterVelocityMode: 2
+  counterVelocityMode: 0
   counterVelocityResetDistance: 2
   counterVelocityResetTime: 0
   counterVelocityStrength: 0.5

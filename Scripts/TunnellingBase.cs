@@ -1,4 +1,4 @@
-﻿///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
 //     Copyright 2018 Sigtrap Ltd. All rights reserved.      //
 //  www.sigtrapgames.com/VrTunnellingPro @sigtrapgames.com   //
 ///////////////////////////////////////////////////////////////
@@ -20,7 +20,6 @@ namespace Sigtrap.VrTunnellingPro {
 		public const int VRTP_VERSION_MINOR = 2;
 		public const int VRTP_VERSION_PATCH = 0;
 		public const string VRTP_VERSION_BETA = "b1";
-
 		//! @endcond
 		#endregion
 
@@ -132,7 +131,6 @@ namespace Sigtrap.VrTunnellingPro {
 		protected const string PROP_SKYBOX = "_Skybox";
 		protected const string PROP_EYEPRJ = "_EyeProjection";
 		protected const string PROP_EYEMAT = "_EyeToWorld";
-		protected const string PROP_EYEOFF = "_EyeOffset";
 		protected const string KEYWORD_BKG = "TUNNEL_BKG";
 		protected const string KEYWORD_SKYBOX = "TUNNEL_SKYBOX";
 		protected const string KEYWORD_OVERLAY = "TUNNEL_OVERLAY";
@@ -154,12 +152,11 @@ namespace Sigtrap.VrTunnellingPro {
 
 		#region Shader Properties
 		protected int _propFxInner, _propFxOuter;
-		private int _propEyeProjection, _propEyeToWorld, _propEyeOffset;
+		private int _propEyeProjection, _propEyeToWorld;
 		protected int _globPropFogColor, _globPropFogDensity, _globPropFogPower, _globPropFogBlend;
 		
 		Matrix4x4[] _eyeToWorld = new Matrix4x4[2];
 		Matrix4x4[] _eyeProjection = new Matrix4x4[2];
-		Vector4 _eyeOffset = new Vector4();
 		#endregion
 
 		#region Fields
@@ -327,7 +324,7 @@ namespace Sigtrap.VrTunnellingPro {
 		/// X: Pitch, Y: Roll.
 		/// </summary>
 		[Tooltip("Maximum artificial tilt in degrees. Zero for no clamp.\nX: Pitch, Y: Roll.")]
-		public Vector2 tiltMaxAngles;
+		public Vector2 tiltMaxAngles = 5*Vector2.one;
 		/// <summary>
 		/// Smooth out tilt over this time.
 		/// </summary>
@@ -408,7 +405,6 @@ namespace Sigtrap.VrTunnellingPro {
 
 			_propEyeProjection = Shader.PropertyToID(PROP_EYEPRJ);
 			_propEyeToWorld = Shader.PropertyToID(PROP_EYEMAT);
-			_propEyeOffset = Shader.PropertyToID(PROP_EYEOFF);
 
 			_globPropFogColor = Shader.PropertyToID(GLOBAL_PROP_FOGCOLOR);
 			_globPropFogDensity = Shader.PropertyToID(GLOBAL_PROP_FOGDENSITY);
@@ -613,7 +609,7 @@ namespace Sigtrap.VrTunnellingPro {
 				}
 				_tiltAccelSmoothed = Vector3.SmoothDamp(_tiltAccelSmoothed, accTgt, ref _tiltAccelSlew, tiltSmoothTime, 1000, dT);
 
-				Vector3 tilt = new Angle3(_tiltAccelSmoothed.z * tiltStrength, 0, -_tiltAccelSmoothed.x * tiltStrength).eulerAcute;
+				Vector3 tilt = new Angle3(_tiltAccelSmoothed.z * tiltStrength, 0, _tiltAccelSmoothed.x * tiltStrength).eulerAcute;
 				if (tiltMaxAngles.sqrMagnitude > 0){
 					tilt = new Vector3(
 						Mathf.Clamp(tilt.x, -tiltMaxAngles.x, tiltMaxAngles.x), 0,
@@ -630,12 +626,8 @@ namespace Sigtrap.VrTunnellingPro {
 				if (Time.frameCount % framerateDivision == 0){
 					updateFps = true;
 				} else {
-					if (divideTranslation){
-						motionEffectTarget.position = _fpsPosition;
-					}
-					if (divideRotation){
-						motionEffectTarget.rotation = _fpsRotation;
-					}
+					motionEffectTarget.position = _fpsPosition;
+					motionEffectTarget.rotation = _fpsRotation;
 				}
 			}
 			// Check for settings change
@@ -763,20 +755,14 @@ namespace Sigtrap.VrTunnellingPro {
 
 			_eyeToWorld[0] = local * _eyeToWorld[0].inverse;
 			_eyeToWorld[1] = local * _eyeToWorld[1].inverse;
-
-			_eyeOffset[0] = _eyeProjection[0].m03;
-			_eyeOffset[1] = _eyeProjection[0].m13;
-			_eyeOffset[2] = _eyeProjection[1].m03;
-			_eyeOffset[3] = _eyeProjection[1].m13;
 		}
 		protected virtual void CorrectEyeMatrices(Matrix4x4[] eyePrj, Matrix4x4[] eyeToWorld){}
 		protected void ApplyEyeMatrices(Material m){
 			m.SetMatrixArray(_propEyeProjection, _eyeProjection);
 			m.SetMatrixArray(_propEyeToWorld, _eyeToWorld);
-			m.SetVector(_propEyeOffset, _eyeOffset);
 		}
 	}
-
+	
 	/// <summary>
 	/// Expresses a float as an angle.
 	/// </summary>

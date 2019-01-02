@@ -99,8 +99,12 @@ namespace Sigtrap.VrTunnellingPro {
 		Dictionary<Renderer, MeshFilter> _maskObjects = new Dictionary<Renderer, MeshFilter>();
 		Stack<Mesh> _skinnedMeshPool = new Stack<Mesh>();
 		Stack<Mesh> _skinnedMeshesRendering = new Stack<Mesh>();
-		bool _wasUsingMask=false;
 		List<Object> _toDestroy = new List<Object>();
+		#endregion
+
+		#region Non-alloc Helpers
+		List<MeshRenderer> _tempMeshChildren = new List<MeshRenderer>();
+		List<SkinnedMeshRenderer> _tempSkinnedMeshChildren = new List<SkinnedMeshRenderer>();
 		#endregion
 
 		#region Public Methods
@@ -132,19 +136,39 @@ namespace Sigtrap.VrTunnellingPro {
 		/// <param name="r">Renderer to add to mask.</param>
 		/// <param name="includeChildren">If set to <c>true</c> include children.</param>
 		public void AddObjectToMask(Renderer r, bool includeChildren=false){
-			try {
-				if (r is SkinnedMeshRenderer){
-					_maskObjects.Add(r, null);
-				} else {
-					_maskObjects.Add(r, r.gameObject.GetComponent<MeshFilter>());
+			MeshFilter f = null;
+			bool add = true;
+			if (r is MeshRenderer){
+				f = r.gameObject.GetComponent<MeshFilter>();
+			} else if (!(r is SkinnedMeshRenderer)) {
+				string err = "VRTP: Only MeshRenderers and SkinnedMeshRenderers can be masked.";
+				if (includeChildren){
+					err += " Any active MeshRenderer or SkinnedMeshRenderer children will still be masked.";
 				}
-			} catch (System.ArgumentException){
-				Debug.LogErrorFormat(r, "Renderer {0} has already been added to the VRTP mask", r.name);
+				Debug.LogError(err, r);
+				add = false;
 			}
+
+			if (add){
+				try {
+					_maskObjects.Add(r, f);	
+				} catch (System.ArgumentException){
+					string err = "VRTP: Renderer {0} has already been masked.";
+					if (includeChildren){
+						err += " Will still attempt to addd any active MeshRenderer or SkinnedMeshRenderer children to mask.";
+					}
+					Debug.LogErrorFormat(r, err, r.name);
+				}
+			}
+
 			if (includeChildren){
-				var childen = r.GetComponentsInChildren<Renderer>();
-				for (int i=0; i<childen.Length; ++i){
-					AddObjectToMask(childen[i], true);
+				r.GetComponentsInChildren<MeshRenderer>(_tempMeshChildren);
+				for (int i=0; i<_tempMeshChildren.Count; ++i){
+					AddObjectToMask(_tempMeshChildren[i], true);
+				}
+				r.GetComponentsInChildren<SkinnedMeshRenderer>(_tempSkinnedMeshChildren);
+				for (int i=0; i<_tempSkinnedMeshChildren.Count; ++i){
+					AddObjectToMask(_tempSkinnedMeshChildren[i], true);
 				}
 			}
 		}
@@ -156,9 +180,14 @@ namespace Sigtrap.VrTunnellingPro {
 		public void RemoveObjectFromMask(Renderer r, bool includeChildren=false){
 			_maskObjects.Remove(r);
 			if (includeChildren){
-				var childen = r.GetComponentsInChildren<Renderer>();
-				for (int i=0; i<childen.Length; ++i){
-					_maskObjects.Remove(childen[i]);
+				// Remove inactive also, in case they've been deactivated after masking
+				r.GetComponentsInChildren<MeshRenderer>(true, _tempMeshChildren);
+				for (int i=0; i<_tempMeshChildren.Count; ++i){
+					_maskObjects.Remove(_tempMeshChildren[i]);
+				}
+				r.GetComponentsInChildren<SkinnedMeshRenderer>(true, _tempSkinnedMeshChildren);
+				for (int i=0; i<_tempSkinnedMeshChildren.Count; ++i){
+					_maskObjects.Remove(_tempSkinnedMeshChildren[i]);
 				}
 			}
 		}
@@ -200,6 +229,7 @@ namespace Sigtrap.VrTunnellingPro {
 				Destroy(m);
 			}
 			_skinnedMeshPool.Clear();
+			// This should be emtpy, but just in case...
 			foreach (var m in _skinnedMeshesRendering){
 				Destroy(m);
 			}
@@ -234,18 +264,20 @@ namespace Sigtrap.VrTunnellingPro {
 			DrawIris(_irisMatOuter, 0, 1, camLayer);
 			
 			// Submit mask objects
-			// Fill pool
-			while (_skinnedMeshesRendering.Count > 0){
-				_skinnedMeshPool.Push(_skinnedMeshesRendering.Pop());
-			}
 			if (useMask){
 				Material mat = stencilMat;
 				mat.renderQueue = RQUEUE_MASK;
 				foreach (var a in _maskObjects){
+					// Ignore inactive
+					if (!a.Key.enabled || !a.Key.gameObject.activeInHierarchy) continue;
+
 					Mesh mesh = null;
+					Matrix4x4 matrix = new Matrix4x4();
+					bool canDrawMask = true;
 					if (a.Value != null){
 						// Static mesh renderer
 						mesh = a.Value.sharedMesh;
+						matrix = a.Key.transform.localToWorldMatrix;
 					} else {
 						// Skinned mesh renderer
 						var s = (a.Key as SkinnedMeshRenderer);
@@ -254,15 +286,24 @@ namespace Sigtrap.VrTunnellingPro {
 							mesh = _skinnedMeshPool.Pop();
 							s.BakeMesh(mesh);
 							_skinnedMeshesRendering.Push(mesh);
+							// BakeMesh bakes scale, so render with unity scale
+							matrix = Matrix4x4.TRS(s.transform.position, s.transform.rotation, Vector3.one);
+						} else {
+							// Otherwise can't mask :(
+							canDrawMask = false;
 						}
-						// Otherwise can't mask :(
 					}
-
-					Matrix4x4 matrix = a.Key.transform.localToWorldMatrix;
 					
-					for (int i=0; i<a.Value.sharedMesh.subMeshCount; ++i){
-						Graphics.DrawMesh(mesh, matrix, mat, camLayer, _cam, i, null, false, false, false);
+					if (canDrawMask){
+						for (int i=0; i<a.Value.sharedMesh.subMeshCount; ++i){
+							Graphics.DrawMesh(mesh, matrix, mat, camLayer, _cam, i, null, false, false, false);
+						}
 					}
+				}
+
+				// Refill pool
+				while (_skinnedMeshesRendering.Count > 0){
+					_skinnedMeshPool.Push(_skinnedMeshesRendering.Pop());
 				}
 			}
 
@@ -271,7 +312,7 @@ namespace Sigtrap.VrTunnellingPro {
 			// Immediately after opaque queue, or absolute last
 			DrawIris(_irisMatInner, 1, RQUEUE_LAST, camLayer);
 		}
-		DrawIris(Material m, int submesh, int opaqueQueue, int camLayer){
+		void DrawIris(Material m, int submesh, int opaqueQueue, int camLayer){
 			// Select pass to use (toggles stencil usage)
 			m.SetShaderPassEnabled("Masked", useMask);
 			m.SetShaderPassEnabled("Unmasked", !useMask);

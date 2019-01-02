@@ -1,4 +1,6 @@
-﻿#if defined(SHADER_API_GLCORE) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3) || defined(SHADER_API_VULKAN)
+﻿#ifndef VRTP_UTILS_INCLUDED
+#define VRTP_UTILS_INCLUDED
+#if defined(SHADER_API_GLCORE) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3) || defined(SHADER_API_VULKAN)
 	#define CLIP_FAR 1
 	#define CLIP_NEAR -1
 	#define CLIP_SCREEN CLIP_FAR
@@ -22,3 +24,4 @@ inline fixed3 sampleSkybox(float4 vPos){
 	float3 dir = normalize(mul(_EyeToWorld[unity_StereoEyeIndex], vPos).xyz);
 	return texCUBE(_Skybox, dir).rgb;
 }
+#endif

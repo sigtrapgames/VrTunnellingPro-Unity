@@ -1,4 +1,6 @@
-﻿#include "TunnellingUtils.cginc"
+﻿#ifndef VRTP_VERTEXUTILS_INCLUDED
+#define VRTP_VERTEXUTILS_INCLUDED
+#include "TunnellingUtils.cginc"
 
 float _FxInner;
 float _FxOuter;
@@ -26,3 +28,4 @@ v2f vert (float4 v : POSITION, fixed4 c : COLOR) {
 	o.a = c.b;
 	return o;
 }
+#endif

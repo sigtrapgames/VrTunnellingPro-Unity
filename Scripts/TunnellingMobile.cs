@@ -27,6 +27,10 @@ namespace Sigtrap.VrTunnellingPro {
 		const string PATH_STENCILSHADER = "TunnellingMobileStencil";
 		const CameraEvent CEVENT_FX = CameraEvent.BeforeImageEffects;
 		const CameraEvent CEVENT_Z = CameraEvent.BeforeForwardOpaque;
+		const int RQUEUE_FIRST = 1;
+		const int RQUEUE_MASK = 2500;		// End of opaque queue
+		const int RQUEUE_OPAQUE = 2501;		// Start of transparent queue
+		const int RQUEUE_LAST = 5000;
 		#endregion
 
 		#region Static
@@ -61,6 +65,12 @@ namespace Sigtrap.VrTunnellingPro {
 		[Tooltip("Use stencil mask to exclude objects from vignette?\nCan stress drawcalls and fillrate.")]
 		public bool useMask;
 		/// <summary>
+		/// If true, transparent objects will draw on top of vignette.<br />
+		/// Disables z-rejection optimisation.
+		/// </summary>
+		[Tooltip("If ticked, transparent objects will draw on top of vignette.\nDisables z-rejection optimisation.")]
+		public bool drawBeforeTransparent;
+		/// <summary>
 		/// Pixels with this value in the stencil buffer will be masked.
 		/// </summary>
 		[Tooltip("Pixels with this value in the stencil buffer will be masked.")]
@@ -84,11 +94,13 @@ namespace Sigtrap.VrTunnellingPro {
 		#region Internal Fields
 		int _propColor, _propSkybox;
 		int _globPropStencilRef, _globPropStencilMask, _globPropStencilBias;
-		Material _irisMat;
+		Material _irisMatZ, _irisMatOuter, _irisMatInner;
 		Mesh _irisMesh;
-		CommandBuffer _zCmd, _fxCmd, _maskCmd;
-		List<Renderer> _maskObjects = new List<Renderer>();
+		Dictionary<Renderer, MeshFilter> _maskObjects = new Dictionary<Renderer, MeshFilter>();
+		Stack<Mesh> _skinnedMeshPool = new Stack<Mesh>();
+		Stack<Mesh> _skinnedMeshesRendering = new Stack<Mesh>();
 		bool _wasUsingMask=false;
+		List<Object> _toDestroy = new List<Object>();
 		#endregion
 
 		#region Public Methods
@@ -120,15 +132,21 @@ namespace Sigtrap.VrTunnellingPro {
 		/// <param name="r">Renderer to add to mask.</param>
 		/// <param name="includeChildren">If set to <c>true</c> include children.</param>
 		public void AddObjectToMask(Renderer r, bool includeChildren=false){
-			_maskObjects.Add(r);
+			try {
+				if (r is SkinnedMeshRenderer){
+					_maskObjects.Add(r, null);
+				} else {
+					_maskObjects.Add(r, r.gameObject.GetComponent<MeshFilter>());
+				}
+			} catch (System.ArgumentException){
+				Debug.LogErrorFormat(r, "Renderer {0} has already been added to the VRTP mask", r.name);
+			}
 			if (includeChildren){
 				var childen = r.GetComponentsInChildren<Renderer>();
 				for (int i=0; i<childen.Length; ++i){
-					_maskObjects.Add(childen[i]);
+					AddObjectToMask(childen[i], true);
 				}
 			}
-			// Clear and repopulate commands
-			ResetMaskCommandBuffer();
 		}
 		/// <summary>
 		/// Stop using object to mask tunnelling effect.
@@ -143,8 +161,6 @@ namespace Sigtrap.VrTunnellingPro {
 					_maskObjects.Remove(childen[i]);
 				}
 			}
-			// Clear and repopulate commands
-			ResetMaskCommandBuffer();
 		}
 		#endregion
 
@@ -158,19 +174,13 @@ namespace Sigtrap.VrTunnellingPro {
 			instance = this;
 
 			_irisMesh = Resources.Load<Mesh>(PATH_MESHES + PATH_IRISMESH);
-			_irisMat = new Material(Shader.Find(PATH_SHADERS + PATH_SHADER));
-
-			_zCmd = new CommandBuffer();
-			_zCmd.name = "VrTunnellingPro Mobile Z-Reject";
-			// Draw outer iris opaque for z-rejection
-			_zCmd.DrawMesh(_irisMesh, Matrix4x4.identity, _irisMat, 0, 0);
-
-			_fxCmd = new CommandBuffer();
-			_fxCmd.name = "VrTunnellingPro Mobile Effect";
-			ResetEffectCommandBuffer(useMask);
-
-			_maskCmd = new CommandBuffer();
-			_maskCmd.name = "VrTunnellingPro Mobile Mask";
+			_irisMatZ = new Material(Shader.Find(PATH_SHADERS + PATH_SHADER + "Z"));
+			_irisMatOuter = new Material(Shader.Find(PATH_SHADERS + PATH_SHADER + "Outer"));
+			_irisMatInner = new Material(Shader.Find(PATH_SHADERS + PATH_SHADER + "Inner"));
+			_toDestroy.Add(_irisMesh);
+			_toDestroy.Add(_irisMatZ);
+			_toDestroy.Add(_irisMatOuter);
+			_toDestroy.Add(_irisMatInner);
 
 			_cam = GetComponent<Camera>();
 
@@ -181,66 +191,23 @@ namespace Sigtrap.VrTunnellingPro {
 			_globPropStencilRef = Shader.PropertyToID(GLOBAL_PROP_STENCILREF);
 			_globPropStencilBias = Shader.PropertyToID(GLOBAL_PROP_STENCILBIAS);
 		}
-		protected override void OnEnable(){
-			base.OnEnable();
-			SetCommandBuffers(useMask);
-		}
-		void OnDisable(){
-			UnsetCommandBuffers(useMask);
-		}
 		void OnDestroy(){
-			Destroy(_irisMat);
-			_zCmd.Dispose();
-			_zCmd = null;
-			_fxCmd.Dispose();
-			_fxCmd = null;
-			_maskCmd.Dispose();
-			_maskCmd = null;
-			_irisMesh = null;
+			foreach (var o in _toDestroy){
+				Destroy(o);
+			}
+			_toDestroy.Clear();
+			foreach (var m in _skinnedMeshPool){
+				Destroy(m);
+			}
+			_skinnedMeshPool.Clear();
+			foreach (var m in _skinnedMeshesRendering){
+				Destroy(m);
+			}
+			_skinnedMeshesRendering.Clear();
 		}
 		#endregion
 
-		void ResetEffectCommandBuffer(bool mask){
-			_fxCmd.Clear();
-			// Draw outer iris opaque
-			_fxCmd.DrawMesh(_irisMesh, Matrix4x4.identity, _irisMat, 0, mask ? 3 : 1);
-			// Draw inner iris alpha blended
-			_fxCmd.DrawMesh(_irisMesh, Matrix4x4.identity, _irisMat, 1, mask ? 4 : 2);
-		}
-		void ResetMaskCommandBuffer(){
-			_maskCmd.Clear();
-			FillMaskBuffer(_maskCmd, _maskObjects, stencilMat);
-		}
-		void SetCommandBuffers(bool mask){
-			if (mask){				
-				_cam.AddCommandBuffer(CEVENT_FX, _maskCmd);
-			} else {
-				_cam.AddCommandBuffer(CEVENT_Z, _zCmd);
-			}
-			_cam.AddCommandBuffer(CEVENT_FX, _fxCmd);
-		}
-		void UnsetCommandBuffers(bool mask){
-			if (mask){
-				_cam.RemoveCommandBuffer(CEVENT_FX, _maskCmd);
-			} else {
-				_cam.RemoveCommandBuffer(CEVENT_Z, _zCmd);
-			}
-			_cam.RemoveCommandBuffer(CEVENT_FX, _fxCmd);
-		}
-
 		void LateUpdate () {
-			if (_wasUsingMask != useMask){
-				// Remove all current buffers (using current mask state)
-				UnsetCommandBuffers(_wasUsingMask);
-				// Set up mask buffer from list of mask objects
-				ResetMaskCommandBuffer();
-				// Set up effect buffer to use / not use mask
-				ResetEffectCommandBuffer(useMask);
-				// Add buffers (using new mask state)
-				SetCommandBuffers(useMask);
-				_wasUsingMask = useMask;
-			}
-			
 			if (useMask){
 				Shader.SetGlobalInt(_globPropStencilRef, stencilReference);
 				Shader.SetGlobalInt(_globPropStencilMask, stencilMask);
@@ -248,22 +215,91 @@ namespace Sigtrap.VrTunnellingPro {
 			}
 
 			float motion = CalculateMotion(Time.deltaTime);
-			_irisMat.SetFloat(_propFxInner, motion);
-			_irisMat.SetFloat(_propFxOuter, motion - effectFeather);
-			_irisMat.SetColor(_propColor, (!drawSkybox || applyColorToBackground) ? effectColor : Color.white);
+			_irisMatZ.SetFloat(_propFxInner, motion);
+			_irisMatZ.SetFloat(_propFxOuter, motion - effectFeather);
+			_irisMatZ.SetColor(_propColor, (!drawSkybox || applyColorToBackground) ? effectColor : Color.white);
 
-			if (drawSkybox){
-				_irisMat.SetTexture(_propSkybox, effectSkybox);
-				_irisMat.EnableKeyword(KEYWORD_SKYBOX);
-			} else {
-				_irisMat.SetTexture(_propSkybox, null);
-				_irisMat.DisableKeyword(KEYWORD_SKYBOX);
+			// Find a layer the camera will render
+			int camLayer = 0;
+			for (int i=0; i<32; ++i){
+				camLayer = 1 << i;
+				if ((_cam.cullingMask & camLayer) != 0){
+					break;
+				}
 			}
+
+			// Submit outer iris opaque pass
+			// Select material depending on masking
+			// Immediately after opaque queue, or first in background queue
+			DrawIris(_irisMatOuter, 0, 1, camLayer);
+			
+			// Submit mask objects
+			// Fill pool
+			while (_skinnedMeshesRendering.Count > 0){
+				_skinnedMeshPool.Push(_skinnedMeshesRendering.Pop());
+			}
+			if (useMask){
+				Material mat = stencilMat;
+				mat.renderQueue = RQUEUE_MASK;
+				foreach (var a in _maskObjects){
+					Mesh mesh = null;
+					if (a.Value != null){
+						// Static mesh renderer
+						mesh = a.Value.sharedMesh;
+					} else {
+						// Skinned mesh renderer
+						var s = (a.Key as SkinnedMeshRenderer);
+						if (s != null){
+							// Grab from pool
+							mesh = _skinnedMeshPool.Pop();
+							s.BakeMesh(mesh);
+							_skinnedMeshesRendering.Push(mesh);
+						}
+						// Otherwise can't mask :(
+					}
+
+					Matrix4x4 matrix = a.Key.transform.localToWorldMatrix;
+					
+					for (int i=0; i<a.Value.sharedMesh.subMeshCount; ++i){
+						Graphics.DrawMesh(mesh, matrix, mat, camLayer, _cam, i, null, false, false, false);
+					}
+				}
+			}
+
+			// Submit inner iris alpha blended pass
+			// Select material depending on masking
+			// Immediately after opaque queue, or absolute last
+			DrawIris(_irisMatInner, 1, RQUEUE_LAST, camLayer);
+		}
+		DrawIris(Material m, int submesh, int opaqueQueue, int camLayer){
+			// Select pass to use (toggles stencil usage)
+			m.SetShaderPassEnabled("Masked", useMask);
+			m.SetShaderPassEnabled("Unmasked", !useMask);
+
+			if (drawBeforeTransparent){
+				// Draw immediately after opaque objects
+				m.renderQueue = RQUEUE_OPAQUE;
+			} else if (useMask){
+				// Draw after everything to allow masked objects to fill stencil
+				m.renderQueue = RQUEUE_LAST;
+			} else {
+				// Draw opaque in specified order
+				m.renderQueue = opaqueQueue;
+			}
+			
+			if (drawSkybox){
+				m.SetTexture(_propSkybox, effectSkybox);
+				m.EnableKeyword(KEYWORD_SKYBOX);
+			} else {
+				m.SetTexture(_propSkybox, null);
+				m.DisableKeyword(KEYWORD_SKYBOX);
+			}
+			Graphics.DrawMesh(_irisMesh, Matrix4x4.identity, m, camLayer, _cam, submesh, null, false, false, false);
 		}
 
 		void OnPreRender(){
 			UpdateEyeMatrices();
-			ApplyEyeMatrices(_irisMat);
+			ApplyEyeMatrices(_irisMatZ);
 		}
 	}
 }

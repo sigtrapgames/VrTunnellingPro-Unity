@@ -210,15 +210,6 @@ namespace Sigtrap.VrTunnellingPro {
 		[Tooltip("Scale counter-velocity on individual axes.\nMultiplied by Counter Velocity Strength.")]
 		public Vector3 counterVelocityPerAxis = Vector3.one;
 		#endregion
-
-		#region Optimisation
-		/// <summary>
-		/// At start of rendering, fill Z buffer where effect will be to save fillrate on drawing world.<br />
-		/// Disabled with blur or masking.
-		/// </summary>
-		[Tooltip("At start of rendering, fill Z buffer where effect will be to save fillrate on drawing world.\nDisabled with blur or masking.")]
-		public bool irisZRejection = true;
-		#endregion
 		#endregion
 
 		#region Graphics

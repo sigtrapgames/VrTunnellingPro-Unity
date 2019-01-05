@@ -259,6 +259,8 @@ namespace Sigtrap.VrTunnellingPro {
 			_irisMatOuter.SetColor(_propColor, color);
 			_irisMatInner.SetColor(_propColor, color);
 
+			Shader.SetGlobalInt("_VRTP_Stencil_Comp", useMask ? (int)CompareFunction.NotEqual : (int)CompareFunction.Always);
+
 			// Disable z-write if allowing transparent to draw on top
 			_irisMatOuter.SetFloat(_propWriteZ, drawBeforeTransparent ? 0 : 1);
 

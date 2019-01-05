@@ -15,6 +15,10 @@ namespace Sigtrap.VrTunnellingPro {
 		[SerializeField]
 		bool _overrideDrawSkybox = true;
 		[SerializeField]
+		bool _drawBeforeTransparent;
+		[SerializeField]
+		bool _overrideDrawBeforeTransparent = true;
+		[SerializeField]
 		bool _useMask = false;
 		[SerializeField]
 		bool _overrideUseMask = true;
@@ -33,6 +37,8 @@ namespace Sigtrap.VrTunnellingPro {
 
 		public bool drawSkybox {get {return _drawSkybox;}}
 		public bool overrideDrawSkybox {get {return _overrideDrawSkybox || overrideAll;}}
+		public bool drawBeforeTransparent {get {return _drawBeforeTransparent;}}
+		public bool overrideDrawBeforeTransparent {get {return _overrideDrawBeforeTransparent;}}
 		public bool useMask {get {return _useMask;}}
 		public bool overrideUseMask {get {return _overrideUseMask;}}
 		public int stencilReference {get {return _stencilReference;}}

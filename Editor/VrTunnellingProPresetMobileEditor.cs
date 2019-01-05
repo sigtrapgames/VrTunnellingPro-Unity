@@ -9,6 +9,7 @@ namespace Sigtrap.VrTunnellingPro.Editors {
 		protected override string HEADER_LOGO_NAME {get {return "VrTunnellingProMobilePresetLogo";}}
 
 		SerializedPropertyPair _pDrawSkybox = new SerializedPropertyPair("_drawSkybox");
+		SerializedPropertyPair _pDrawBeforeTransparent = new SerializedPropertyPair("_drawBeforeTransparent");
 		SerializedPropertyPair _pUseMask = new SerializedPropertyPair("_useMask");
 		SerializedPropertyPair _pStencilReference = new SerializedPropertyPair("_stencilReference");
 		SerializedPropertyPair _pStencilMask = new SerializedPropertyPair("_stencilMask");
@@ -18,7 +19,7 @@ namespace Sigtrap.VrTunnellingPro.Editors {
 		static bool _showMaskSettings = true;
 
 		protected override void CacheProperties(){
-			InitSpps(_pDrawSkybox, _pUseMask, _pStencilReference, _pStencilMask, _pStencilBias);
+			InitSpps(_pDrawSkybox, _pDrawBeforeTransparent, _pUseMask, _pStencilReference, _pStencilMask, _pStencilBias);
 		}
 		protected override void DrawSettings(){
 			EditorGUILayout.Space();
@@ -32,6 +33,7 @@ namespace Sigtrap.VrTunnellingPro.Editors {
 				DrawProperty(_pApplyColor, true);
 				DrawProperty(_pDrawSkybox, true);
 				DrawProperty(_pSkybox, true);
+				DrawProperty(_pDrawBeforeTransparent, true);
 				--EditorGUI.indentLevel;
 			}
 

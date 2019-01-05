@@ -20,7 +20,7 @@ namespace Sigtrap.VrTunnellingPro {
 		const string PATH_WINDOWSHADER = "Window";
 		const string PATH_COPYSHADER = "BlitA";
 		const string PATH_BLURSHADER = "SeparableBlur";
-		const string PATH_IRISSHADER = "TunnellingVertex";
+		const string PATH_IRISSHADER = "TunnellingVertexZ";
 		const string PATH_SKYSPHERESHADER = "Skysphere";
 		const string PATH_SKYSPHEREMESH = "Skysphere";
 		const string PROP_FEATHER = "_Feather";
@@ -209,15 +209,6 @@ namespace Sigtrap.VrTunnellingPro {
 		/// </summary>
 		[Tooltip("Scale counter-velocity on individual axes.\nMultiplied by Counter Velocity Strength.")]
 		public Vector3 counterVelocityPerAxis = Vector3.one;
-		#endregion
-
-		#region Optimisation
-		/// <summary>
-		/// At start of rendering, fill Z buffer where effect will be to save fillrate on drawing world.<br />
-		/// Disabled with blur or masking.
-		/// </summary>
-		[Tooltip("At start of rendering, fill Z buffer where effect will be to save fillrate on drawing world.\nDisabled with blur or masking.")]
-		public bool irisZRejection = true;
 		#endregion
 		#endregion
 

@@ -5,19 +5,20 @@ using UnityEditor;
 
 namespace Sigtrap.VrTunnellingPro.Editors {
 	[CustomEditor(typeof(TunnellingMobile), true)]
-	public class VrTunnellingMobileEditor : VrTunnellingProEditorBase {
+	public class VrTunnellingProMobileEditor : VrTunnellingProEditorBase {
 		override protected string HEADER_LOGO_NAME {get {return "VrTunnellingProMobileLogo";}}
 		AutoProperty _pDrawSkybox = new AutoProperty("drawSkybox");
 		AutoProperty _pUseMask = new AutoProperty("useMask");
 		AutoProperty _pStencilRef = new AutoProperty("stencilReference");
 		AutoProperty _pStencilMask = new AutoProperty("stencilMask");
 		AutoProperty _pStencilBias = new AutoProperty("stencilBias");
+		AutoProperty _pDrawBeforeTransparent = new AutoProperty("drawBeforeTransparent");
 		TunnellingMobile _tm;
 
 		GUIContent _gcApplyColor = new GUIContent("Apply Color", "Apply Effect Color to Skybox");
 
 		protected override void CacheProperties(){
-			InitAps(_pDrawSkybox, _pUseMask, _pStencilRef, _pStencilMask, _pStencilBias);
+			InitAps(_pDrawSkybox, _pUseMask, _pStencilRef, _pStencilMask, _pStencilBias, _pDrawBeforeTransparent);
 			_tm = (TunnellingMobile)target;
 		}
 
@@ -30,6 +31,10 @@ namespace Sigtrap.VrTunnellingPro.Editors {
 					EditorGUILayout.PropertyField(_pFxSkybox);
 					--EditorGUI.indentLevel;
 				}
+			} VrtpStyles.EndSectionBox();
+
+			VrtpStyles.BeginSectionBox(); {
+				VrtpEditorUtils.ToggleProperty(_pDrawBeforeTransparent, null, VrtpStyles.sectionHeader);
 			} VrtpStyles.EndSectionBox();
 
 			VrtpStyles.BeginSectionBox(); {

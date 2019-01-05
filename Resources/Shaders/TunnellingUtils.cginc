@@ -1,13 +1,11 @@
 ﻿#ifndef VRTP_UTILS_INCLUDED
 #define VRTP_UTILS_INCLUDED
-#if defined(SHADER_API_GLCORE) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3) || defined(SHADER_API_VULKAN)
-	#define CLIP_FAR 1
-	#define CLIP_NEAR -1
+
+#define CLIP_FAR 1
+#if defined(SHADER_API_GLCORE) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3) || defined(SHADER_API_VULKAN)	
 	#define CLIP_SCREEN CLIP_FAR
 #else
-	#define CLIP_FAR 1
-	#define CLIP_NEAR 0
-	#define CLIP_SCREEN CLIP_NEAR
+	#define CLIP_SCREEN UNITY_NEAR_CLIP_VALUE
 #endif
 
 samplerCUBE _Skybox;

@@ -9,7 +9,7 @@
 		Blend SrcAlpha OneMinusSrcAlpha
 		LOD 100
 		ZTest Always
-		ZWrite On
+		ZWrite Off
 		Cull Off
 
 		CGINCLUDE

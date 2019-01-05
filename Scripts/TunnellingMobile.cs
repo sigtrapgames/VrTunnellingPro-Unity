@@ -23,6 +23,7 @@ namespace Sigtrap.VrTunnellingPro {
 		/// </summary>
 		public const string GLOBAL_PROP_STENCILBIAS = "_VRTP_Stencil_Bias";
 
+		const string PROP_WRITEZ = "_WriteZ";
 		const string PATH_SHADER = "TunnellingVertex";
 		const string PATH_STENCILSHADER = "TunnellingMobileStencil";
 		const CameraEvent CEVENT_FX = CameraEvent.BeforeImageEffects;
@@ -92,7 +93,7 @@ namespace Sigtrap.VrTunnellingPro {
 		#endregion
 
 		#region Internal Fields
-		int _propColor, _propSkybox;
+		int _propColor, _propSkybox, _propWriteZ;
 		int _globPropStencilRef, _globPropStencilMask, _globPropStencilBias;
 		Material _irisMatOuter, _irisMatInner;
 		Mesh _irisMesh;
@@ -205,7 +206,7 @@ namespace Sigtrap.VrTunnellingPro {
 			}
 			instance = this;
 
-			_irisMesh = Resources.Load<Mesh>(PATH_MESHES + PATH_IRISMESH);
+			_irisMesh = Instantiate<Mesh>(Resources.Load<Mesh>(PATH_MESHES + PATH_IRISMESH));
 			_irisMatOuter = new Material(Shader.Find(PATH_SHADERS + PATH_SHADER + "Outer"));
 			_irisMatInner = new Material(Shader.Find(PATH_SHADERS + PATH_SHADER + "Inner"));
 			_toDestroy.Add(_irisMesh);
@@ -216,6 +217,7 @@ namespace Sigtrap.VrTunnellingPro {
 
 			_propColor = Shader.PropertyToID(PROP_COLOR);
 			_propSkybox = Shader.PropertyToID(PROP_SKYBOX);
+			_propWriteZ = Shader.PropertyToID(PROP_WRITEZ);
 
 			_globPropStencilMask = Shader.PropertyToID(GLOBAL_PROP_STENCILMASK);
 			_globPropStencilRef = Shader.PropertyToID(GLOBAL_PROP_STENCILREF);
@@ -256,6 +258,9 @@ namespace Sigtrap.VrTunnellingPro {
 			Color color = (!drawSkybox || applyColorToBackground) ? effectColor : Color.white;
 			_irisMatOuter.SetColor(_propColor, color);
 			_irisMatInner.SetColor(_propColor, color);
+
+			// Disable z-write if allowing transparent to draw on top
+			_irisMatOuter.SetFloat(_propWriteZ, drawBeforeTransparent ? 0 : 1);
 
 			// Find a layer the camera will render
 			int camLayer = 0;

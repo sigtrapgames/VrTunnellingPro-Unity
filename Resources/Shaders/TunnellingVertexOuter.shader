@@ -4,6 +4,7 @@
 		_Effect ("Effect", Range(0,1)) = 0.5
 	}
 	SubShader {
+		// Queue set in script
 		Tags { "RenderType"="Opaque" }
 		LOD 100
 		ZTest Always
@@ -17,15 +18,9 @@
 		#include "UnityCG.cginc"
 		#include "TunnellingVertexUtils.cginc"
 
-		fixed3 _Color;
 		fixed4 frag (v2f v) : SV_Target {
 			UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(v);
-			#if TUNNEL_SKYBOX
-				float4 vPos = screenCoords(v.sPos);
-				return sampleSkybox(vPos) * _Color;
-			#else
-				return _Color;
-			#endif
+			return fragBody(v, 1);
 		}
 		ENDCG
 

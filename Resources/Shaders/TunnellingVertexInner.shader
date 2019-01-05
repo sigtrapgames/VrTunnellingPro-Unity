@@ -1,10 +1,12 @@
-﻿Shader "Hidden/VrTunnellingPro/TunnellingVertexZ" {
+﻿Shader "Hidden/VrTunnellingPro/TunnellingVertexInner" {
 	Properties {
 		_Color ("Color", Color) = (0,0,0,1)
 		_Effect ("Effect", Range(0,1)) = 0.5
 	}
 	SubShader {
-		Tags { "RenderType"="Opaque" }
+		// Queue set in script
+		Tags { "RenderType"="Transparent" }
+		Blend SrcAlpha OneMinusSrcAlpha
 		LOD 100
 		ZTest Always
 		ZWrite On
@@ -17,20 +19,15 @@
 		#include "UnityCG.cginc"
 		#include "TunnellingVertexUtils.cginc"
 
-		fixed3 _Color;
 		fixed4 frag (v2f v) : SV_Target {
 			UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(v);
-			#if TUNNEL_SKYBOX
-				float4 vPos = screenCoords(v.sPos);
-				return fixed4(sampleSkybox(vPos) * _Color, v.a);
-			#else
-				return fixed4(_Color, v.a);
-			#endif
+			return fragBody(v, v.a);
 		}
 		ENDCG
 
 		Pass {
-			Name "Inner"
+			Name "Unmasked"
+
 			CGPROGRAM
 			#pragma target 2.0
 			#pragma vertex vert
@@ -40,8 +37,7 @@
 		}
 		
 		Pass {
-			Name "InnerMasked"
-			Blend SrcAlpha OneMinusSrcAlpha
+			Name "Masked"
 
 			Stencil {
 				Ref [_VRTP_Stencil_Ref]

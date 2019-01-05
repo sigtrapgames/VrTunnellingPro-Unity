@@ -20,7 +20,7 @@ namespace Sigtrap.VrTunnellingPro {
 		const string PATH_WINDOWSHADER = "Window";
 		const string PATH_COPYSHADER = "BlitA";
 		const string PATH_BLURSHADER = "SeparableBlur";
-		const string PATH_IRISSHADER = "TunnellingVertex";
+		const string PATH_IRISSHADER = "TunnellingVertexZ";
 		const string PATH_SKYSPHERESHADER = "Skysphere";
 		const string PATH_SKYSPHEREMESH = "Skysphere";
 		const string PROP_FEATHER = "_Feather";

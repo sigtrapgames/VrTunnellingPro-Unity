@@ -4,6 +4,7 @@
 
 float _FxInner;
 float _FxOuter;
+fixed3 _Color;
 
 struct v2f {
 	float4 vertex : SV_POSITION;
@@ -27,5 +28,14 @@ v2f vert (float4 v : POSITION, fixed4 c : COLOR) {
 	o.sPos = ComputeNonStereoScreenPos(o.vertex);
 	o.a = c.b;
 	return o;
+}
+
+inline fixed4 fragBody(v2f v, fixed a){
+	#if TUNNEL_SKYBOX
+		half4 vPos = screenCoords(v.sPos);
+		return fixed4(sampleSkybox(vPos) * _Color, a);
+	#else
+		return fixed4(_Color, a);
+	#endif
 }
 #endif

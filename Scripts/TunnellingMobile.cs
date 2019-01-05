@@ -28,7 +28,7 @@ namespace Sigtrap.VrTunnellingPro {
 		const CameraEvent CEVENT_FX = CameraEvent.BeforeImageEffects;
 		const CameraEvent CEVENT_Z = CameraEvent.BeforeForwardOpaque;
 		const int RQUEUE_FIRST = 1;
-		const int RQUEUE_MASK = 2500;		// End of opaque queue
+		const int RQUEUE_MASK = 2499;		// End of opaque queue
 		const int RQUEUE_OPAQUE = 2501;		// Start of transparent queue
 		const int RQUEUE_LAST = 5000;
 		#endregion
@@ -94,7 +94,7 @@ namespace Sigtrap.VrTunnellingPro {
 		#region Internal Fields
 		int _propColor, _propSkybox;
 		int _globPropStencilRef, _globPropStencilMask, _globPropStencilBias;
-		Material _irisMatZ, _irisMatOuter, _irisMatInner;
+		Material _irisMatOuter, _irisMatInner;
 		Mesh _irisMesh;
 		Dictionary<Renderer, MeshFilter> _maskObjects = new Dictionary<Renderer, MeshFilter>();
 		Stack<Mesh> _skinnedMeshPool = new Stack<Mesh>();
@@ -116,6 +116,9 @@ namespace Sigtrap.VrTunnellingPro {
 
 			if (p.overrideDrawSkybox){
 				drawSkybox = p.drawSkybox;
+			}
+			if (p.overrideDrawBeforeTransparent){
+				drawBeforeTransparent = p.drawBeforeTransparent;
 			}
 			if (p.overrideUseMask){
 				useMask = p.useMask;
@@ -203,11 +206,9 @@ namespace Sigtrap.VrTunnellingPro {
 			instance = this;
 
 			_irisMesh = Resources.Load<Mesh>(PATH_MESHES + PATH_IRISMESH);
-			_irisMatZ = new Material(Shader.Find(PATH_SHADERS + PATH_SHADER + "Z"));
 			_irisMatOuter = new Material(Shader.Find(PATH_SHADERS + PATH_SHADER + "Outer"));
 			_irisMatInner = new Material(Shader.Find(PATH_SHADERS + PATH_SHADER + "Inner"));
 			_toDestroy.Add(_irisMesh);
-			_toDestroy.Add(_irisMatZ);
 			_toDestroy.Add(_irisMatOuter);
 			_toDestroy.Add(_irisMatInner);
 
@@ -245,9 +246,16 @@ namespace Sigtrap.VrTunnellingPro {
 			}
 
 			float motion = CalculateMotion(Time.deltaTime);
-			_irisMatZ.SetFloat(_propFxInner, motion);
-			_irisMatZ.SetFloat(_propFxOuter, motion - effectFeather);
-			_irisMatZ.SetColor(_propColor, (!drawSkybox || applyColorToBackground) ? effectColor : Color.white);
+			_irisMatOuter.SetFloat(_propFxInner, motion);
+			_irisMatInner.SetFloat(_propFxInner, motion);
+
+			float outer = motion - effectFeather;
+			_irisMatOuter.SetFloat(_propFxOuter, outer);
+			_irisMatInner.SetFloat(_propFxOuter, outer);
+
+			Color color = (!drawSkybox || applyColorToBackground) ? effectColor : Color.white;
+			_irisMatOuter.SetColor(_propColor, color);
+			_irisMatInner.SetColor(_propColor, color);
 
 			// Find a layer the camera will render
 			int camLayer = 0;
@@ -335,12 +343,15 @@ namespace Sigtrap.VrTunnellingPro {
 				m.SetTexture(_propSkybox, null);
 				m.DisableKeyword(KEYWORD_SKYBOX);
 			}
-			Graphics.DrawMesh(_irisMesh, Matrix4x4.identity, m, camLayer, _cam, submesh, null, false, false, false);
+			// Matrix is ignored in shader, but have to ensure mesh passes culling
+			Vector3 pos = transform.position + (transform.forward * _cam.nearClipPlane * 1.01f);
+			Graphics.DrawMesh(_irisMesh, pos, Quaternion.identity, m, camLayer, _cam, submesh, null, false, false, false);
 		}
 
 		void OnPreRender(){
 			UpdateEyeMatrices();
-			ApplyEyeMatrices(_irisMatZ);
+			ApplyEyeMatrices(_irisMatOuter);
+			ApplyEyeMatrices(_irisMatInner);
 		}
 	}
 }

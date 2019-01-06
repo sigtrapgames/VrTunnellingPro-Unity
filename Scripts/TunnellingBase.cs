@@ -193,12 +193,6 @@ namespace Sigtrap.VrTunnellingPro {
 		/// Basic vignette mode always uses <see cref="effectColor"/>.
 		/// </summary>
 		public bool applyColorToBackground = false;
-		/// <summary>
-		/// At start of rendering, fill Z buffer where effect will be to save fillrate on drawing world.<br />
-		/// Disabled with blur or masking.
-		/// </summary>
-		[Tooltip("At start of rendering, fill Z buffer where effect will be to save fillrate on drawing world.\nDisabled with blur or masking.")]
-		public bool irisZRejection = true;
 		#endregion
 
 		#region Motion Detection

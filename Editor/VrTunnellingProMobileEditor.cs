@@ -49,6 +49,10 @@ namespace Sigtrap.VrTunnellingPro.Editors {
 				}
 			} VrtpStyles.EndSectionBox();
 
+			if (!_tm.irisZRejectionEnabled){
+				EditorGUILayout.HelpBox("Z-Rejection fillrate optimisation disabled", MessageType.Warning);
+			}
+
 			DrawMotionSettings();
 		}
 	}

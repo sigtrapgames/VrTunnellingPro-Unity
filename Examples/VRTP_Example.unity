@@ -15763,7 +15763,7 @@ MonoBehaviour:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1492532596}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7ac20df6282234e419ee9915e0fd1676, type: 3}
   m_Name: 
@@ -15774,7 +15774,6 @@ MonoBehaviour:
   effectFeather: 0.1
   effectSkybox: {fileID: 8900000, guid: 814f7c32c471f9844ac9ac3b628fd10b, type: 3}
   applyColorToBackground: 0
-  irisZRejection: 1
   useAngularVelocity: 1
   angularVelocityStrength: 1
   angularVelocityMin: 0
@@ -15801,7 +15800,7 @@ MonoBehaviour:
   framerateDivision: 1
   divideTranslation: 0
   divideRotation: 0
-  backgroundMode: 2
+  backgroundMode: 0
   effectOverlay: 0
   _cageParent: {fileID: 1127942512}
   cageDownsample: 0
@@ -15815,6 +15814,7 @@ MonoBehaviour:
   blurDistance: 3
   blurPasses: 3
   blurSamples: 2
+  irisZRejection: 1
   counterVelocityMode: 0
   counterVelocityResetDistance: 2
   counterVelocityResetTime: 0
@@ -15826,7 +15826,7 @@ MonoBehaviour:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1492532596}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f0509641f74d9c24c80e405cf0068b58, type: 3}
   m_Name: 
@@ -15837,7 +15837,6 @@ MonoBehaviour:
   effectFeather: 0.1
   effectSkybox: {fileID: 8900000, guid: 53ec25ecc46b49f4ab3bc22a92f95802, type: 3}
   applyColorToBackground: 0
-  irisZRejection: 1
   useAngularVelocity: 1
   angularVelocityStrength: 1
   angularVelocityMin: 0

@@ -92,6 +92,12 @@ namespace Sigtrap.VrTunnellingPro {
 		public float stencilBias=1;
 		#endregion
 
+		/// <summary>
+		/// If true, opaque portion of effect is drawn at start of frame, preventing overdraw by writing to z buffer.<br />
+		/// Disabled by masking or drawing before transparent objects.
+		/// </summary>
+		public bool irisZRejectionEnabled {get {return !(useMask || drawBeforeTransparent);}}
+
 		#region Internal Fields
 		int _propColor, _propSkybox, _propWriteZ;
 		int _globPropStencilRef, _globPropStencilMask, _globPropStencilBias;

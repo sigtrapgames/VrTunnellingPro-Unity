@@ -15763,7 +15763,7 @@ MonoBehaviour:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1492532596}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7ac20df6282234e419ee9915e0fd1676, type: 3}
   m_Name: 
@@ -15774,6 +15774,7 @@ MonoBehaviour:
   effectFeather: 0.1
   effectSkybox: {fileID: 8900000, guid: 814f7c32c471f9844ac9ac3b628fd10b, type: 3}
   applyColorToBackground: 0
+  irisZRejection: 1
   useAngularVelocity: 1
   angularVelocityStrength: 1
   angularVelocityMin: 0
@@ -15819,14 +15820,13 @@ MonoBehaviour:
   counterVelocityResetTime: 0
   counterVelocityStrength: 0.5
   counterVelocityPerAxis: {x: 1, y: 1, z: 1}
-  irisZRejection: 1
 --- !u!114 &1492532603
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1492532596}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f0509641f74d9c24c80e405cf0068b58, type: 3}
   m_Name: 
@@ -15837,6 +15837,7 @@ MonoBehaviour:
   effectFeather: 0.1
   effectSkybox: {fileID: 8900000, guid: 53ec25ecc46b49f4ab3bc22a92f95802, type: 3}
   applyColorToBackground: 0
+  irisZRejection: 1
   useAngularVelocity: 1
   angularVelocityStrength: 1
   angularVelocityMin: 0
@@ -15852,8 +15853,8 @@ MonoBehaviour:
   velocityMin: 0
   velocityMax: 0
   velocitySmoothing: 0.15
-  motionEffectTarget: {fileID: 0}
-  useCounterMotion: 1
+  motionEffectTarget: {fileID: 1096446017}
+  useCounterMotion: 0
   counterRotationStrength: 1
   counterRotationPerAxis: {x: 0, y: 1, z: 0}
   useArtificialTilt: 0
@@ -15865,6 +15866,7 @@ MonoBehaviour:
   divideRotation: 1
   drawSkybox: 0
   useMask: 0
+  drawBeforeTransparent: 0
   stencilReference: 1
   stencilMask: 255
   stencilBias: 1

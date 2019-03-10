@@ -59,7 +59,7 @@ MonoBehaviour:
   _overrideDivideRotation: 1
   _effectOverlay: 0
   _overrideEffectOverlay: 0
-  _backgroundMode: 4
+  _backgroundMode: 5
   _overrideBackgroundMode: 1
   _cageDownsample: 0
   _overrideCageDownsample: 0

@@ -18110,7 +18110,6 @@ GameObject:
   - component: {fileID: 1713445503}
   - component: {fileID: 1713445502}
   - component: {fileID: 1713445501}
-  - component: {fileID: 1713445505}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -18129,7 +18128,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2ad22f2598f4ac049bcdc6ec635f9e8f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _disableModes: 1
+  _disableModes: 0
   _rotSensitivity: 180
   _movSensitivity: 10
   _skyboxes:
@@ -18230,17 +18229,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: -90.00001, z: 0}
---- !u!114 &1713445505
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1713445500}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d63432ebe1b977c43b8fde7eff3ae111, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1001 &1714595348
 Prefab:
   m_ObjectHideFlags: 0

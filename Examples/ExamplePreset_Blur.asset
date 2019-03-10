@@ -43,6 +43,22 @@ MonoBehaviour:
     _max: 0
     _smoothing: 0
   _overrideVelocity: 0
+  _useCounterMotion: 0
+  _overrideUseCounterMotion: 1
+  _counterRotationStrength: 1
+  _overrideCounterRotationStrength: 1
+  _counterRotationPerAxis: {x: 1, y: 1, z: 1}
+  _overrideCounterRotationPerAxis: 1
+  _useArtificialTilt: 0
+  _overrideUseArtificialTilt: 1
+  _framerateDivision: 1
+  _overrideFramerateDivision: 1
+  _divideTranslation: 1
+  _overrideDivideTranslation: 1
+  _divideRotation: 1
+  _overrideDivideRotation: 1
+  _effectOverlay: 0
+  _overrideEffectOverlay: 0
   _backgroundMode: 4
   _overrideBackgroundMode: 1
   _cageDownsample: 0
@@ -67,5 +83,15 @@ MonoBehaviour:
   _overrideBlurPasses: 1
   _blurSamples: 2
   _overrideBlurSamples: 1
+  _counterVelocityMode: 0
+  _overrideCounterVelocityMode: 1
+  _counterVelocityResetDistance: 0
+  _overrideCounterVelocityResetDistance: 1
+  _counterVelocityResetTime: 0
+  _overrideCounterVelocityResetTime: 1
+  _counterVelocityStrength: 1
+  _overrideCounterVelocityStrength: 1
+  _counterVelocityPerAxis: {x: 1, y: 1, z: 1}
+  _overrideCounterVelocityPerAxis: 1
   _irisZRejection: 0
   _overrideIrisZRejection: 1

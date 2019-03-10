@@ -13,6 +13,7 @@ For mobile VR - or if you just need a higher-performance option - see the \ref m
 - \subpage effect
 - \subpage bkg
 - \subpage mask
+- \subpage mfx
 - \subpage presets
 - \subpage scripting
 - \subpage mobile
@@ -242,6 +243,7 @@ Consider adding a clear visual indicator of the player's forward direction. For 
 - **Motion Settings**: Generally **Angular Velocity** and **Acceleration** should be used at minimum. Allow users to turn on **Velocity** mode as well if desired.
 - **Background**: Usually **SKYBOX** or **CAGE** is a good default as **COLOR** may be insufficient for some players. Consider allowing **COLOR** and/or **BLUR** mode for players with higher sim-sickness tolerance.
 - **Masking**: It can be useful to use **MASK** mode to mask objects attached to the player - for instance body and guns. Direction indicators should generally be masked. Some players will find that **WINDOW** mode provides a stronger grounding by adding the constant static reference that first person games usually lack - however this is usually too intrusive to be default. **PORTAL** mode can also be a useful option if portals are placed intelligently in the world.
+- **Fake Cockpit**: If your experience would benefit from a fixed frame of reference, like a cockpit, but wouldn't make sense in-world, consider **CAGE_OVERLAY** mode to render a "fake" cockpit in the periphery.
 
 ## First Person - Wand-Directed Movement
 Wand-directed movement is when the player moves in the direction they are pointing. In this case direction can be clearer, and generally there is no artificial rotation. Most of the guidelines for thumbstick motion apply, but there are some other considerations.

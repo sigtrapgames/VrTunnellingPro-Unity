@@ -55,9 +55,9 @@ Additionally, the periphery can be replaced with static imagery to counteract mo
   - Easily define multiple presets that users can switch between at runtime
 - Full source code
   - Hook into code or make custom edits
-- Supports Vive, Rift, PSVR, Go, Gear VR, Daydream and more
+- Supports Vive, Rift, PSVR, Oculus Go, Oculus Quest, Gear VR, Daydream and more
   - Mobile-friendly version included
-- Compatible with Multipass and Single Pass Stereo (non-mobile only)
+- Compatible with Multipass and Single Pass Stereo
 - High performance
 
 <div class="screenshot">

@@ -33,9 +33,14 @@ ehthumbs.db
 Thumbs.db
 Thumbs.db.meta
 
+# ======= #
+# Doxygen #
+# ======= #
+/Docs~/html/*
+/Docs~/BuildAndCopyDocs.bat
+
 # ===== #
 # Other #
 # ===== #
 *.unitypackage
 /[Bb]in/
-/Assets/StreamingAssets/

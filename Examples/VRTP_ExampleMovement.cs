@@ -4,6 +4,8 @@ using System.Collections;
 namespace Sigtrap.VrTunnellingPro.Examples {
 	public class VRTP_ExampleMovement : MonoBehaviour {
 		[SerializeField]
+		bool _disableModes = false;
+		[SerializeField]
 		float _rotSensitivity = 180;
 		[SerializeField]
 		float _movSensitivity = 10;
@@ -27,6 +29,13 @@ namespace Sigtrap.VrTunnellingPro.Examples {
 		CharacterController _char;
 		int _currentSkybox = 0;
 		int _currentCage = 0;
+
+		Vector3 _speedCurrent, _speedSlew;
+		[SerializeField]
+		float _speedSmoothing = 0;
+		float _rotCurrent, _rotSlew;
+		[SerializeField]
+		float _rotSmoothing = 0;
 
 		void Awake(){
 			_tunnelling = GetComponentInChildren<Tunnelling>();
@@ -83,9 +92,14 @@ namespace Sigtrap.VrTunnellingPro.Examples {
 				}
 			}
 
-			transform.Rotate(0, rot * _rotSensitivity * Time.deltaTime, 0);
-			_char.SimpleMove(transform.rotation * mov * _movSensitivity);
+			_rotCurrent = Mathf.SmoothDamp(_rotCurrent, rot, ref _rotSlew, _rotSmoothing);
+			transform.Rotate(0, _rotCurrent * _rotSensitivity * Time.deltaTime, 0);
 
+			_speedCurrent = Vector3.SmoothDamp(_speedCurrent, mov, ref _speedSlew, _speedSmoothing);
+			_char.SimpleMove(transform.rotation * _speedCurrent * _movSensitivity);
+
+			if (_disableModes) return;
+			
 			for (int i=0; i<_modePresets.Length; ++i) {
 				if (Input.GetKeyDown(_modePresets[i].key)) {
 					SetPreset(i);

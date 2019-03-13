@@ -1,4 +1,7 @@
-﻿#define VRTP_FOG_COORDS(idx) float2 vrtpFogCoords : TEXCOORD##idx;
+﻿#ifndef VRTP_CAGE_FOG
+#define VRTP_CAGE_FOG
+
+#define VRTP_FOG_COORDS(idx) float2 vrtpFogCoords : TEXCOORD##idx;
 #define VRTP_TRANSFER_FOG(o,outpos) o.vrtpFogCoords = (outpos).zw
 #define VRTP_APPLY_FOG(col,i) col = applyFog(col, i.vrtpFogCoords)
 
@@ -12,3 +15,4 @@ inline fixed3 applyFog(fixed3 col, float2 vrtpFogCoords){
 	float t = exp(-power);
 	return lerp(col, _VRTP_Cage_FogColor, t*_VRTP_Cage_FogBlend);
 }
+#endif

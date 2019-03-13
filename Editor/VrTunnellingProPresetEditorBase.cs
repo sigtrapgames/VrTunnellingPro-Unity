@@ -11,9 +11,15 @@ namespace Sigtrap.VrTunnellingPro.Editors {
 		protected class SerializedPropertyPair {
 			public SerializedProperty p;
 			public SerializedProperty b;
-			public SerializedPropertyPair(SerializedObject s, string baseName){
-				p = s.FindProperty(baseName);
-				b = s.FindProperty("_override" + baseName.ToUpper()[1] + baseName.Substring(2));
+			public bool isReady {get {return p != null && b !=null;}}
+			string _baseName;
+
+			public SerializedPropertyPair(string baseName){
+				_baseName = baseName;
+			}
+			public void Init(SerializedObject s){
+				p = s.FindProperty(_baseName);
+				b = s.FindProperty("_override" + _baseName.ToUpper()[1] + _baseName.Substring(2));
 			}
 		}
 
@@ -22,38 +28,53 @@ namespace Sigtrap.VrTunnellingPro.Editors {
 		static readonly GUIContent _gcOverrideAll = new GUIContent("All", "Override all settings (doesn't wipe individual overrides).");
 
 		SerializedProperty _pOverrideAll;
-		protected SerializedPropertyPair _pEffectCoverage;
-		protected SerializedPropertyPair _pEffectColor;
-		protected SerializedPropertyPair _pEffectFeather;
-		protected SerializedPropertyPair _pApplyColor;
-		protected SerializedPropertyPair _pSkybox;
-		SerializedPropertyPair _pAv;
-		SerializedPropertyPair _pLa;
-		SerializedPropertyPair _pLv;
+		protected SerializedPropertyPair _pEffectCoverage = new SerializedPropertyPair("_effectCoverage");
+		protected SerializedPropertyPair _pEffectColor = new SerializedPropertyPair("_effectColor");
+		protected SerializedPropertyPair _pEffectFeather = new SerializedPropertyPair("_effectFeather");
+		protected SerializedPropertyPair _pApplyColor = new SerializedPropertyPair("_applyColorToBackground");
+		protected SerializedPropertyPair _pSkybox = new SerializedPropertyPair("_skybox");
+		SerializedPropertyPair _pAv = new SerializedPropertyPair("_angularVelocity");
+		SerializedPropertyPair _pLa = new SerializedPropertyPair("_acceleration");
+		SerializedPropertyPair _pLv = new SerializedPropertyPair("_velocity");
+
+		protected SerializedPropertyPair _pCounterMotion = new SerializedPropertyPair("_useCounterMotion");
+		protected SerializedPropertyPair _pCounterRotationStrength = new SerializedPropertyPair("_counterRotationStrength");
+		protected SerializedPropertyPair _pCounterRotationPerAxis = new SerializedPropertyPair("_counterRotationPerAxis");
+
+		protected SerializedPropertyPair _pArtificialTilt = new SerializedPropertyPair("_useArtificialTilt");
+		protected SerializedPropertyPair _pFramerateDivision = new SerializedPropertyPair("_framerateDivision");
+		protected SerializedPropertyPair _pDivideTranslation = new SerializedPropertyPair("_divideTranslation");
+		protected SerializedPropertyPair _pDivideRotation = new SerializedPropertyPair("_divideRotation");
 
 		Texture _headerLogo;
 
 		bool _overrideAll;
 
+		static bool _showMotionDetection = true;
+		static bool _showCounterMotion = true;
+		static bool _showArtificialTilt = true;
+		static bool _showFramerateDivision = true;
+
 		void OnEnable(){
-			_pOverrideAll = serializedObject.FindProperty("_overrideAll");
-
-			_pEffectCoverage = new SerializedPropertyPair(serializedObject, "_effectCoverage");
-			_pEffectColor = new SerializedPropertyPair(serializedObject, "_effectColor");
-			_pEffectFeather = new SerializedPropertyPair(serializedObject, "_effectFeather");
-			_pApplyColor = new SerializedPropertyPair(serializedObject, "_applyColorToBackground");
-			_pSkybox = new SerializedPropertyPair(serializedObject, "_skybox");
-			_pAv = new SerializedPropertyPair(serializedObject, "_angularVelocity");
-			_pLa = new SerializedPropertyPair(serializedObject, "_acceleration");
-			_pLv = new SerializedPropertyPair(serializedObject, "_velocity");
-
 			_headerLogo = Resources.Load<Texture>(HEADER_LOGO_PATH + HEADER_LOGO_NAME);
-
+			_pOverrideAll = serializedObject.FindProperty("_overrideAll");
+			InitSpps(
+				_pEffectCoverage, _pEffectColor, _pEffectFeather, _pApplyColor, _pSkybox,
+				_pAv, _pLa, _pLv,
+				_pCounterMotion, _pCounterRotationStrength, _pCounterRotationPerAxis,
+				_pArtificialTilt, _pFramerateDivision, _pDivideTranslation, _pDivideRotation
+			);
 			CacheProperties();
 		}
 
 		protected abstract void CacheProperties();
 		protected abstract void DrawSettings();
+
+		protected void InitSpps(params SerializedPropertyPair[] pairs){
+			foreach (var p in pairs){
+				p.Init(serializedObject);
+			}
+		}
 
 		protected void DrawProperty(SerializedPropertyPair p, bool indentBool=false, GUIContent label=null){
 			EditorGUILayout.BeginHorizontal();
@@ -76,15 +97,49 @@ namespace Sigtrap.VrTunnellingPro.Editors {
 			EditorGUILayout.EndHorizontal();
 		}
 		protected void DrawMotionSettings(){
-			DrawProperty(_pAv, true);
-			DrawProperty(_pLa, true);
-			DrawProperty(_pLv, true);
+			_showMotionDetection = EditorGUILayout.Foldout(_showMotionDetection, "Motion Detection", VrtpStyles.sectionFoldout);
+			if (_showMotionDetection){
+				++EditorGUI.indentLevel;
+				DrawProperty(_pAv, false);
+				DrawProperty(_pLa, false);
+				DrawProperty(_pLv, false);
+				--EditorGUI.indentLevel;
+			}
+
+			_showCounterMotion = EditorGUILayout.Foldout(_showCounterMotion, "Counter Motion", VrtpStyles.sectionFoldout);
+			if (_showCounterMotion){
+				++EditorGUI.indentLevel;
+				DrawCounterMotionSettings();
+				--EditorGUI.indentLevel;
+			}
+
+			_showArtificialTilt = EditorGUILayout.Foldout(_showArtificialTilt, "Artificial Tilt", VrtpStyles.sectionFoldout);
+			if (_showArtificialTilt){
+				++EditorGUI.indentLevel;
+				DrawProperty(_pArtificialTilt);
+				--EditorGUI.indentLevel;
+			}
+
+			_showFramerateDivision = EditorGUILayout.Foldout(_showFramerateDivision, "Framerate Division", VrtpStyles.sectionFoldout);
+			if (_showFramerateDivision){
+				++EditorGUI.indentLevel;
+				DrawProperty(_pFramerateDivision);
+				DrawProperty(_pDivideTranslation);
+				DrawProperty(_pDivideRotation);
+				--EditorGUI.indentLevel;
+			}
+		}
+
+		protected virtual void DrawCounterMotionSettings(){
+			DrawProperty(_pCounterMotion);
+			DrawProperty(_pCounterRotationStrength);
+			DrawProperty(_pCounterRotationPerAxis);
 		}
 
 		public override void OnInspectorGUI(){
 			EditorGUI.BeginChangeCheck();
 
-			VrTunnellingProEditorUtils.DrawImage(_headerLogo, 77, new Vector2(0,-4));
+			VrtpEditorUtils.DrawImage(_headerLogo, 77, new Vector2(0,-4));
 
 			EditorGUILayout.Space();
 

@@ -1,0 +1,239 @@
+/* Structural */
+.mdescRight br {
+	display: none;
+}
+.contents>h2.groupheader {
+	margin-top: 0;
+}
+.contents .dynheader {
+	display: none;
+}
+.contents .textblock p,
+.contents .textblock ul,
+.contents .textblock ol {
+	max-width: 800px;
+	margin-top: 0;
+	line-height: 1.3em;
+}
+.contents .textblock h2, h3, h4 {
+	margin-bottom: 0;
+}
+.contents .textblock h1:not(:first-child) {
+	margin-bottom: 10px;
+	margin-top: 40px;
+}
+.image {
+	text-align: left;
+}
+.directory td.desc {
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+	max-width: 0px;
+}
+.directory td.desc br {
+	display: none;
+}
+
+#projectname {
+	padding: 0;
+	font-family: 'Open Sans', sans-serif;
+	font-weight: 600;
+	letter-spacing: 0.1em;
+	word-spacing: 0.3em;
+	text-transform: uppercase;
+	margin-bottom: -8px;
+	margin-top: -3px;
+}
+#projectbrief {
+	font-family: 'Open Sans', sans-serif;
+	font-weight: 400
+}
+#projectlogo img {
+	height: 77px;
+}
+#projectalign {
+	vertical-align: top;
+}
+#MSearchBox {
+	right: 200px;
+}
+
+#nav-path li.copyright {
+	float: right;
+	background-image: none;
+}
+
+.header-asset-link {
+	float: right;
+	padding-top: 3px;
+	height: 72px;
+	margin-right: 10px;
+}
+.header-asset-link img {
+	height: 100%;
+	width: auto;
+}
+.header-banner {
+	height: 128px;
+	width: auto;
+	margin-left: -12px;
+	margin-top: -10px;
+	margin-bottom: 5px;
+}
+
+.boxout {
+	float: right;
+	text-align: right;
+	font-style: italic;
+	font-size: 0.8em;
+	margin-left: 20px;
+	margin-right: 10px;
+	margin-bottom: 20px;
+	line-height: 1.4em;
+}
+.boxout div {
+	text-align: right;
+	font-style: italic;
+	font-size: 1em;
+	line-height: 1.3em;
+}
+.boxout .boxout-multi {
+	margin-bottom: 10px;
+}
+
+.screenshot {
+	font-style: italic;
+	font-size: 0.8em;
+	margin-bottom: 10px;
+	line-height: 1.3em;
+	max-width: 700px;
+}
+.screenshot img {
+	max-width: 100%;
+}
+
+
+/* Colour Scheme */
+body {
+	background-color: #222c37;
+	color: #d0d0d0;
+}
+blockquote {
+	background-color: #f7f8fb1a;
+	border-left: 2px solid #FF3300
+}
+a, .contents a, a:visited, .contents a:visited{
+	color: #839dd2;
+}
+code {
+	color: #ff3300;
+}
+
+h1, h2, h3, h4, h5, h6,
+h1.groupheader, h2.groupheader, h3.groupheader, 
+h4.groupheader, h5.groupheader, h6.groupheader {
+	color: #bb3d36;
+}
+
+#titlearea {
+	background-color: #222c37;
+	color: white;
+	border-bottom: 5px solid #FF3300;
+}
+div.header {
+	background-image: none;
+	border-bottom: 1px solid #FF3300;
+	background-color: inherit;
+}
+
+.navpath ul {
+	background-image: none;
+	background-color: inherit;
+	border: 1px solid #FF3300;
+	color: white;
+}
+.navpath li.copyright, .navpath li.footer {
+	color: white;
+}
+.navpath li.navelem a {
+	color: inherit;
+	text-shadow: none;
+}
+
+#nav-tree {
+	background-image: none;
+	background-color: #2e3d4d;
+}
+#nav-tree a {
+	color: #d0d0d0;
+}
+.arrow {
+	color: #FF3300;
+}
+.ui-resizable-e {
+	background-color: #bb3d36;
+	background-image: none;
+}
+
+div.fragment {
+	background-color: inherit;
+	padding: 3px;
+}
+div.dyncontent div.center img {
+	filter: invert(100%);
+}
+
+.mdescLeft, .mdescRight, .memItemLeft, 
+.memItemRight, .memTemplItemLeft, 
+.memTemplItemRight, .memTemplParams {
+	background-color: inherit;
+}
+.mdescLeft, .mdescRight {
+	color: white;
+}
+.memdoc {
+	background-color: #2e3d4d;
+}
+.memtitle {
+	background-image: none;
+	background-color: inherit;
+}
+.memproto {
+	background-image: none;
+	background-color: inherit;
+	text-shadow: none;
+	color: inherit;
+}
+.fieldtable th {
+	background-image: none;
+	background-color: #222c37;
+	color: inherit;
+}
+.directory tr.even {
+	background-color: #2e3d4d;
+}
+.directory .levels span {
+	color: #839dd2;
+}
+
+.paramname {
+	color: inherit;
+}
+
+/* Responsive */
+@media screen and (max-width: 1279px){
+	.screen-large {
+		display: none;
+	}
+}
+@media screen and (min-width: 1280px){
+	.screen-small {
+		display: none;
+	}
+}
+@media screen and (max-width: 810px){
+	#projectname {
+		font-size: 200%;
+	}
+}

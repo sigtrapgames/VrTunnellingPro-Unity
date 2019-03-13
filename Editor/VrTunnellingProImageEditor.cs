@@ -17,6 +17,7 @@ namespace Sigtrap.VrTunnellingPro.Editors {
 
 		#region SPs
 		SerializedProperty _pBkgMode;
+		SerializedProperty _pOverlay;
 
 		SerializedProperty _pCageParent;
 		SerializedProperty _pCageDownsample;
@@ -35,6 +36,12 @@ namespace Sigtrap.VrTunnellingPro.Editors {
 		SerializedProperty _pBlurKernel;
 
 		SerializedProperty _pZRejectIris;
+
+		AutoProperty _pCounterVelMode = new AutoProperty("counterVelocityMode", "Velocity Mode");
+		AutoProperty _pCounterVelResetDistance = new AutoProperty("counterVelocityResetDistance", "Reset Distance");
+		AutoProperty _pCounterVelResetTime = new AutoProperty("counterVelocityResetTime", "Reset Time");
+		AutoProperty _pCounterVelStr = new AutoProperty("counterVelocityStrength", "Velocity Strength");
+		AutoProperty _pCounterVelAxs = new AutoProperty("counterVelocityPerAxis", "Velocity Per-Axis");
 		#endregion
 
 		#region Reflection
@@ -65,11 +72,13 @@ namespace Sigtrap.VrTunnellingPro.Editors {
 
 		TunnellingImageBase _tib;
 
+		static bool _showBkgSettings = true;
 		static bool _showCageSettings = true;
 		static bool _showFogSettings = true;
 
 		protected override void CacheProperties(){
 			_pBkgMode = serializedObject.FindProperty("backgroundMode");
+			_pOverlay = serializedObject.FindProperty("effectOverlay");
 
 			_pCageParent = serializedObject.FindProperty("_cageParent");
 			_pCageDownsample = serializedObject.FindProperty("cageDownsample");
@@ -91,88 +100,96 @@ namespace Sigtrap.VrTunnellingPro.Editors {
 
 			_piCanDrawIris = typeof(TunnellingImageBase).GetProperty("_canDrawIris", BindingFlags.Instance | BindingFlags.NonPublic);
 
+			InitAps(_pCounterVelStr, _pCounterVelAxs, _pCounterVelMode, _pCounterVelResetDistance, _pCounterVelResetTime);
+
 			_tib = (TunnellingImageBase)target;
 		}
 
 		protected override void DrawSettings(){
-			EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-			EditorGUILayout.PropertyField(_pBkgMode);
-			if (_tib.backgroundMode != TunnellingBase.BackgroundMode.COLOR) {
-				switch (_tib.backgroundMode) {
-					case TunnellingBase.BackgroundMode.SKYBOX:
-						EditorGUILayout.LabelField("Skybox Settings");
-						++EditorGUI.indentLevel;
-						EditorGUILayout.PropertyField(_pApplyColorToBkg, _gcApplyColorSkybox);
-						EditorGUILayout.PropertyField(_pFxSkybox);
-						--EditorGUI.indentLevel;
-						break;
-					case TunnellingBase.BackgroundMode.BLUR:
-						EditorGUILayout.HelpBox("BLUR mode is performance-intensive", MessageType.Warning);
-						EditorGUILayout.LabelField("Blur Settings");
-						++EditorGUI.indentLevel;
-						EditorGUILayout.PropertyField(_pApplyColorToBkg, _gcApplyColorBlur);
-						EditorGUILayout.PropertyField(_pBlurDownsample, _gcBlurDownsample);
-						EditorGUILayout.PropertyField(_pBlurDistance, _gcBlurDistance);
-						EditorGUILayout.PropertyField(_pBlurPasses, _gcBlurPasses);
-						EditorGUILayout.PropertyField(_pBlurKernel, _gcBlurKernel);
-						--EditorGUI.indentLevel;
-						break;
-					case TunnellingBase.BackgroundMode.CAGE_COLOR:
-					case TunnellingBase.BackgroundMode.CAGE_SKYBOX:
-						EditorGUILayout.PropertyField(_pCageParent);
-						++EditorGUI.indentLevel;
-						_showCageSettings = EditorGUILayout.Foldout(_showCageSettings, _gcCageSettings);
-						if (_showCageSettings) {
-							++EditorGUI.indentLevel;
-							EditorGUILayout.PropertyField(_pApplyColorToBkg, _gcApplyColorCage);
-							if (_tib.backgroundMode == TunnellingBase.BackgroundMode.CAGE_SKYBOX) {
+			VrtpStyles.BeginSectionBox(); {
+				++EditorGUI.indentLevel;
+				_showBkgSettings = EditorGUILayout.Foldout(_showBkgSettings, "Background Settings", VrtpStyles.sectionFoldout);
+				--EditorGUI.indentLevel;
+				
+				if (_showBkgSettings){
+					EditorGUILayout.Space();
+					EditorGUILayout.PropertyField(_pBkgMode);
+					if (_tib.backgroundMode != TunnellingBase.BackgroundMode.COLOR) {
+						switch (_tib.backgroundMode) {
+							case TunnellingBase.BackgroundMode.SKYBOX:
+								EditorGUILayout.LabelField("Skybox Settings");
+								++EditorGUI.indentLevel;
+								EditorGUILayout.PropertyField(_pApplyColorToBkg, _gcApplyColorSkybox);
 								EditorGUILayout.PropertyField(_pFxSkybox);
-							}
-							EditorGUILayout.PropertyField(_pCageDownsample, _gcCageDownsample);
-							EditorGUILayout.PropertyField(_pCageAa, _gcCageAa);
-							EditorGUILayout.PropertyField(_pCageUpdate, _gcCageUpdate);
-							--EditorGUI.indentLevel;
+								EditorGUILayout.PropertyField(_pOverlay);
+								--EditorGUI.indentLevel;
+								break;
+							case TunnellingBase.BackgroundMode.BLUR:
+								EditorGUILayout.HelpBox("BLUR mode is performance-intensive", MessageType.Warning);
+								EditorGUILayout.LabelField("Blur Settings");
+								++EditorGUI.indentLevel;
+								EditorGUILayout.PropertyField(_pApplyColorToBkg, _gcApplyColorBlur);
+								EditorGUILayout.PropertyField(_pBlurDownsample, _gcBlurDownsample);
+								EditorGUILayout.PropertyField(_pBlurDistance, _gcBlurDistance);
+								EditorGUILayout.PropertyField(_pBlurPasses, _gcBlurPasses);
+								EditorGUILayout.PropertyField(_pBlurKernel, _gcBlurKernel);
+								--EditorGUI.indentLevel;
+								break;
+							case TunnellingBase.BackgroundMode.CAGE_COLOR:
+							case TunnellingBase.BackgroundMode.CAGE_SKYBOX:
+							case TunnellingBase.BackgroundMode.CAGE_ONLY:
+								EditorGUILayout.PropertyField(_pCageParent);
+								++EditorGUI.indentLevel;
+								_showCageSettings = EditorGUILayout.Foldout(_showCageSettings, _gcCageSettings, VrtpStyles.childFoldout);
+								if (_showCageSettings) {
+									EditorGUILayout.PropertyField(_pApplyColorToBkg, _gcApplyColorCage);
+									EditorGUILayout.PropertyField(_pOverlay);
+									if (_tib.backgroundMode == TunnellingBase.BackgroundMode.CAGE_SKYBOX) {
+										EditorGUILayout.PropertyField(_pFxSkybox);
+									}
+									EditorGUILayout.PropertyField(_pCageDownsample, _gcCageDownsample);
+									EditorGUILayout.PropertyField(_pCageAa, _gcCageAa);
+									EditorGUILayout.PropertyField(_pCageUpdate, _gcCageUpdate);
+								}
+								_showFogSettings = EditorGUILayout.Foldout(_showFogSettings, _gcFogSettings, VrtpStyles.childFoldout);
+								if (_showFogSettings){
+									EditorGUILayout.PropertyField(_pCageFogDensity, _gcCageFogDensity);
+									EditorGUILayout.PropertyField(_pCageFogPower, _gcCageFogPower);
+									EditorGUILayout.PropertyField(_pCageFogBlend, _gcCageFogBlend);
+								}
+								--EditorGUI.indentLevel;
+								break;
 						}
-						_showFogSettings = EditorGUILayout.Foldout(_showFogSettings, _gcFogSettings);
-						if (_showFogSettings){
-							++EditorGUI.indentLevel;
-							EditorGUILayout.PropertyField(_pCageFogDensity, _gcCageFogDensity);
-							EditorGUILayout.PropertyField(_pCageFogPower, _gcCageFogPower);
-							EditorGUILayout.PropertyField(_pCageFogBlend, _gcCageFogBlend);
-							--EditorGUI.indentLevel;
-						}
-						--EditorGUI.indentLevel;
-						break;
-				}
-			}
-			if (_tib.backgroundMode != TunnellingBase.BackgroundMode.BLUR){
-				bool canDrawIris = (bool)_piCanDrawIris.GetValue(_tib,null);
-				if (!canDrawIris) {
-					EditorGUILayout.BeginHorizontal();
-				}
-				EditorGUILayout.PropertyField(_pZRejectIris);
-				if (!canDrawIris) {
-					string whyDisabled = "Disabled: ";
-					if (_tib.useMask){
-						whyDisabled += "Masking enabled";
-					} else if (_tib.backgroundMode == TunnellingBase.BackgroundMode.BLUR){
-						whyDisabled += "Blur enabled";
-					} else {
-						whyDisabled += "Effect Color alpha < 1";
 					}
-					GUI.enabled = false;
-					EditorGUILayout.LabelField(whyDisabled);
-					GUI.enabled = true;
-					EditorGUILayout.EndHorizontal();
+					if (_tib.backgroundMode != TunnellingBase.BackgroundMode.BLUR){
+						bool canDrawIris = (bool)_piCanDrawIris.GetValue(_tib,null);
+						if (!canDrawIris) {
+							EditorGUILayout.BeginHorizontal();
+						}
+						EditorGUILayout.PropertyField(_pZRejectIris);
+						if (!canDrawIris) {
+							string whyDisabled = "Disabled: ";
+							if (_tib.usingMask){
+								whyDisabled += "Masking enabled";
+							} else if (_tib.backgroundMode == TunnellingBase.BackgroundMode.BLUR){
+								whyDisabled += "Blur enabled";
+							} else if (_tib.backgroundMode == TunnellingBase.BackgroundMode.CAGE_ONLY){
+								whyDisabled += "CAGE_ONLY mode";
+							} else {
+								whyDisabled += "Effect Color alpha < 1";
+							}
+							GUI.enabled = false;
+							EditorGUILayout.LabelField(whyDisabled);
+							GUI.enabled = true;
+							EditorGUILayout.EndHorizontal();
+						}
+					}
 				}
-			}
-			EditorGUILayout.EndVertical();
+			} VrtpStyles.EndSectionBox();
 
-			EditorGUILayout.Space();
-
+			VrtpStyles.BeginSectionBox();
 			EditorGUILayout.PropertyField(_pMaskMode);
-
-			EditorGUILayout.Space();
+			VrtpStyles.EndSectionBox();
 
 			DrawMotionSettings();
 
@@ -180,6 +197,22 @@ namespace Sigtrap.VrTunnellingPro.Editors {
 				SetFogParams(_tib.cageFogDensity, _tib.cageFogPower, _tib.cageFogBlend, _tib.effectColor);
 			}
 		}
+
+		protected override void DrawCounterMotionSettings(){
+			base.DrawCounterMotionSettings();
+			EditorGUILayout.Space();
+			VrtpEditorUtils.PropertyField(_pCounterVelMode);
+			var mode = (TunnellingImageBase.CounterVelocityMode)_pCounterVelMode.p.intValue;
+			if (mode == TunnellingImageBase.CounterVelocityMode.REAL){
+				VrtpEditorUtils.PropertyField(_pCounterVelResetDistance);
+				VrtpEditorUtils.PropertyField(_pCounterVelResetTime);
+			}
+			if (mode != TunnellingImageBase.CounterVelocityMode.OFF){
+				VrtpEditorUtils.PropertyField(_pCounterVelStr);
+				VrtpEditorUtils.PropertyField(_pCounterVelAxs);
+			}
+		}
+
 		static void SetFogParams(float density, float power, float blend, Color color){
 			Shader.SetGlobalFloat(TunnellingBase.GLOBAL_PROP_FOGDENSITY, density);
 			Shader.SetGlobalFloat(TunnellingBase.GLOBAL_PROP_FOGPOWER, power);

@@ -5,7 +5,7 @@
 #if defined(SHADER_API_GLCORE) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3) || defined(SHADER_API_VULKAN)	
 	#define CLIP_SCREEN CLIP_FAR
 #else
-	#define CLIP_SCREEN UNITY_NEAR_CLIP_VALUE
+	#define CLIP_SCREEN 1-UNITY_NEAR_CLIP_VALUE
 #endif
 
 samplerCUBE _Skybox;

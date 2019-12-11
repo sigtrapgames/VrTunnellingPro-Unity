@@ -13,12 +13,15 @@ struct v2f {
 	UNITY_VERTEX_OUTPUT_STEREO
 };
 
-v2f vert (float4 v : POSITION, half2 uv : TEXCOORD0) {
+v2f vert (appdata i) {
 	v2f o;
-	UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
-	o.vertex = v;
-	float p = (_FxInner * uv.x) + (_FxOuter * uv.y);
-	o.a = 1-(uv.x);
+	UNITY_SETUP_INSTANCE_ID(i);
+    UNITY_INITIALIZE_OUTPUT(v2f, o);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+	
+	o.vertex = i.vertex;
+	float p = (_FxInner * i.uv.x) + (_FxOuter * i.uv.y);
+	o.a = 1-(i.uv.x);
 	o.vertex.xy = lerp(o.vertex.xy, 0, p);
 	o.vertex.z = UNITY_NEAR_CLIP_VALUE;
 	o.vertex.xy *= 2.4;

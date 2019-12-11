@@ -15,10 +15,10 @@ namespace Sigtrap.VrTunnellingPro {
 	public abstract class TunnellingBase : MonoBehaviour {
 		#region Version Info
 		//! @cond
-		public const string VRTP_VERSION = "1.2.0";
+		public const string VRTP_VERSION = "1.2.1";
 		public const int VRTP_VERSION_MAJOR = 1;
 		public const int VRTP_VERSION_MINOR = 2;
-		public const int VRTP_VERSION_PATCH = 0;
+		public const int VRTP_VERSION_PATCH = 1;
 		public const string VRTP_VERSION_BETA = "";
 		//! @endcond
 		#endregion

@@ -12,6 +12,16 @@ samplerCUBE _Skybox;
 float4x4 _EyeProjection[2];
 float4x4 _EyeToWorld[2];
 
+struct appdata {
+	float4 vertex : POSITION;
+#if defined(SHADER_API_GLES) || defined(SHADER_API_GLES3)
+	half2 uv : TEXCOORD0;
+#else
+	float2 uv : TEXCOORD0;
+#endif
+	UNITY_VERTEX_INPUT_INSTANCE_ID
+};
+
 inline float4 screenCoords(float2 uv){
 	float2 c = (uv - 0.5) * 2;
 	float4 vPos = mul(_EyeProjection[unity_StereoEyeIndex], float4(c, CLIP_SCREEN, 1));

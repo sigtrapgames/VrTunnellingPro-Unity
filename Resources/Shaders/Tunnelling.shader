@@ -4,8 +4,6 @@
 		_Color ("Color", Color) = (0,0,0,1)
 		_Effect ("Effect Strength", Float) = 0
 		_Feather ("Feather", Float) = 0.1
-		_BkgTex ("Background Texture", 2D) = "white" {}
-		_MaskTex ("Mask Texture", 2D) = "white" {}
 		_Skybox ("Skybox", Cube) = "" {}
 	}
 
@@ -20,34 +18,41 @@
 	#include "UnityCG.cginc"
 	#include "TunnellingUtils.cginc"
 
-	struct appdata {
-		float4 vertex : POSITION;
-		float2 uv : TEXCOORD0;
-	};
 	struct v2f {			
 		float4 vertex : SV_POSITION;
 		float2 uv : TEXCOORD0;
+		UNITY_VERTEX_OUTPUT_STEREO
 	};
 
 	v2f vert (appdata v) {
 		v2f o;
+		UNITY_SETUP_INSTANCE_ID(v);
+		UNITY_INITIALIZE_OUTPUT(v2f, o);
+		UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+
 		o.vertex = UnityObjectToClipPos(v.vertex);
 		o.uv = v.uv;
 		return o;
 	}
 	
-	sampler2D _MainTex;
+	UNITY_DECLARE_SCREENSPACE_TEXTURE(_MainTex);
+	UNITY_DECLARE_SCREENSPACE_TEXTURE(_BkgTex);
+	UNITY_DECLARE_SCREENSPACE_TEXTURE(_MaskTex);
 	float4 _MainTex_ST;
 	fixed4 _Color;
-	sampler2D _BkgTex;
-	sampler2D _MaskTex;
 	float _FxInner;
 	float _FxOuter;
 	float _Overlay;
 
 	fixed3 frag (v2f i) : SV_Target {
+		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i)
+
+	#if defined(UNITY_STEREO_INSTANCING_ENABLED)
+		float2 uv = i.uv;
+	#else
 		float2 uv = UnityStereoScreenSpaceUVAdjust(i.uv, _MainTex_ST);
-		fixed3 col = tex2D(_MainTex, uv).rgb;
+	#endif
+		fixed3 col = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_MainTex, uv).rgb;
 		float4 coords = screenCoords(i.uv);
 		fixed4 bkg;
 
@@ -55,7 +60,7 @@
 		#if TUNNEL_BKG
 			// Sample cage/blur RT
 			// Don't do skybox - cage will include it already if needed
-			bkg = tex2D(_BkgTex, uv);
+			bkg = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_BkgTex, uv);
 			bkg.rgb *= _Color.rgb;
 
 			// If CAGE_ONLY use rt alpha
@@ -76,7 +81,7 @@
 
 		// Sample mask
 		#if TUNNEL_MASK
-			bkg.a *= tex2D(_MaskTex, uv).r;
+			bkg.a *= UNITY_SAMPLE_SCREENSPACE_TEXTURE(_MaskTex, uv).r;
 		#endif
 
 		// Apply color alpha at the end as final factor

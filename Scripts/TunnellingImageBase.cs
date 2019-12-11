@@ -611,7 +611,11 @@ namespace Sigtrap.VrTunnellingPro {
 			if (usingMask || _usingCageRt){
 				if (_usingCageRt) {
 					// Set render target and blit bkg colour
+				#if UNITY_2017_4_OR_NEWER	// Allow for SP Instanced
 					Graphics.SetRenderTarget(_cageRt, 0, CubemapFace.Unknown, -1);
+				#else
+					Graphics.SetRenderTarget(_cageRt);
+				#endif
 					Color bkg = effectColor;
 					bkg.a = backgroundMode == TunnellingBase.BackgroundMode.CAGE_ONLY ? 0 : 1;
 					GL.Clear(true, true, bkg);
@@ -836,11 +840,11 @@ namespace Sigtrap.VrTunnellingPro {
 					_maskRt.Release();
 				}
 			#if UNITY_2017_2_OR_NEWER
-				var maskRtd = new RenderTextureDescriptor(srcX, srcY, RenderTextureFormat.Default);
+				var maskRtd = new RenderTextureDescriptor(srcX, srcY, RenderTextureFormat.R8);
 				maskRtd.vrUsage = UnityEngine.XR.XRSettings.eyeTextureDesc.vrUsage;
 				_maskRt = new RenderTexture(maskRtd);
 			#else
-				_maskRt = new RenderTexture(srcX, srcY, RenderTextureFormat.Default);
+				_maskRt = new RenderTexture(srcX, srcY, 16, RenderTextureFormat.R8);
 			#endif
 				_maskRt.antiAliasing = srcMsaa; //GetMsaa(maskAntiAliasing, srcMsaa);
 				_maskRt.name = "VRTP Mask";
@@ -904,10 +908,19 @@ namespace Sigtrap.VrTunnellingPro {
 			_maskCmd.Clear();
 
 			// Set color target to our RT, clear, but keep z buffer
+			
+		#if UNITY_2017_4_OR_NEWER	// Allow for SP Instanced
 			_maskCmd.SetRenderTarget(
-				new RenderTargetIdentifier(_maskRt, 0, CubemapFace.Unknown, -1), 
-				new RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget, 0, CubemapFace.Unknown, -1)
+				new RenderTargetIdentifier(_maskRt),
+				new RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget),
+				0, CubemapFace.Unknown, -1
 			);
+		#else
+			_maskCmd.SetRenderTarget(
+				new RenderTargetIdentifier(_maskRt), 
+				new RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget)
+			);
+		#endif
 			_maskCmd.ClearRenderTarget(false, true, Color.white);
 
 			// Draw each listed mesh

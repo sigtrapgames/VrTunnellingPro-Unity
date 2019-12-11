@@ -905,8 +905,8 @@ namespace Sigtrap.VrTunnellingPro {
 
 			// Set color target to our RT, clear, but keep z buffer
 			_maskCmd.SetRenderTarget(
-				new RenderTargetIdentifier(_maskRt), 
-				new RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget)
+				new RenderTargetIdentifier(_maskRt, 0, CubemapFace.Unknown, -1), 
+				new RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget, 0, CubemapFace.Unknown, -1)
 			);
 			_maskCmd.ClearRenderTarget(false, true, Color.white);
 

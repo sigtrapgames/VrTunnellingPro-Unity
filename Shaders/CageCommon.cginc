@@ -6,31 +6,37 @@
 struct appdata {
 	float4 vertex : POSITION;
 	float2 uv : TEXCOORD0;
+	UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 struct appdata_triplanar {
 	float4 vertex : POSITION;
 	float3 normal : NORMAL;
+	UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 struct v2f {
 	float2 uv : TEXCOORD0;
 	float4 vertex : SV_POSITION;
+	UNITY_VERTEX_OUTPUT_STEREO
 };
 struct v2fFog {
 	float2 uv : TEXCOORD0;
 	float4 vertex : SV_POSITION;
 	VRTP_FOG_COORDS(1)
+	UNITY_VERTEX_OUTPUT_STEREO
 };
 struct v2fTriplanar {
 	float3 cagePos : TEXCOORD0;
 	float3 cageNrm : NORMAL;
 	float4 vertex : SV_POSITION;
+	UNITY_VERTEX_OUTPUT_STEREO
 };
 struct v2fTriplanarFog {
 	float3 cagePos : TEXCOORD0;
 	float3 cageNrm : NORMAL;
 	float4 vertex : SV_POSITION;
 	VRTP_FOG_COORDS(1)
+	UNITY_VERTEX_OUTPUT_STEREO
 };
 
 sampler2D _MainTex;
@@ -44,8 +50,14 @@ float4x4 _VRTP_WorldToCage;
 float4x4 _VRTP_WorldToCageNormal;
 float3 _VRTP_CagePos;
 
+#define SETUP_INSTANCE(type, i, o)				\
+	UNITY_SETUP_INSTANCE_ID(i);					\
+	UNITY_INITIALIZE_OUTPUT(type, o);			\
+	UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o)
+
 v2f vert (appdata v) {
 	v2f o;
+	SETUP_INSTANCE(v2f, v, o);
 	o.vertex = UnityObjectToClipPos(v.vertex);
 	o.uv = TRANSFORM_TEX(v.uv, _MainTex);
 	return o;
@@ -53,6 +65,7 @@ v2f vert (appdata v) {
 
 v2fFog vertFog (appdata v){
 	v2fFog o;
+	SETUP_INSTANCE(v2fFog, v, o);
 	o.vertex = UnityObjectToClipPos(v.vertex);
 	VRTP_TRANSFER_FOG(o, o.vertex);
 	o.uv = TRANSFORM_TEX(v.uv, _MainTex);
@@ -61,6 +74,7 @@ v2fFog vertFog (appdata v){
 
 v2fTriplanar vertTriplanar (appdata_triplanar v){
 	v2fTriplanar o;
+	SETUP_INSTANCE(v2fTriplanar, v, o);
 	o.vertex = UnityObjectToClipPos(v.vertex);
 
 	float4x4 objToCage = mul(_VRTP_WorldToCage, unity_ObjectToWorld);
@@ -73,6 +87,7 @@ v2fTriplanar vertTriplanar (appdata_triplanar v){
 
 v2fTriplanarFog vertTriplanarFog (appdata_triplanar v){
 	v2fTriplanarFog o;
+	SETUP_INSTANCE(v2fTriplanarFog, v, o);
 	o.vertex = UnityObjectToClipPos(v.vertex);
 
 	float4x4 objToCage = mul(_VRTP_WorldToCage, unity_ObjectToWorld);

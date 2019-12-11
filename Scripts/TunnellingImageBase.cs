@@ -611,7 +611,7 @@ namespace Sigtrap.VrTunnellingPro {
 			if (usingMask || _usingCageRt){
 				if (_usingCageRt) {
 					// Set render target and blit bkg colour
-					Graphics.SetRenderTarget(_cageRt);
+					Graphics.SetRenderTarget(_cageRt, 0, CubemapFace.Unknown, -1);
 					Color bkg = effectColor;
 					bkg.a = backgroundMode == TunnellingBase.BackgroundMode.CAGE_ONLY ? 0 : 1;
 					GL.Clear(true, true, bkg);

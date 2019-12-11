@@ -47,8 +47,12 @@
 	fixed3 frag (v2f i) : SV_Target {
 		UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i)
 
+	#if defined(UNITY_STEREO_INSTANCING_ENABLED)
+		float2 uv = i.uv;
+	#else
 		float2 uv = UnityStereoScreenSpaceUVAdjust(i.uv, _MainTex_ST);
-		fixed3 col = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_MainTex, i.uv).rgb;
+	#endif
+		fixed3 col = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_MainTex, uv).rgb;
 		float4 coords = screenCoords(i.uv);
 		fixed4 bkg;
 
@@ -56,7 +60,7 @@
 		#if TUNNEL_BKG
 			// Sample cage/blur RT
 			// Don't do skybox - cage will include it already if needed
-			bkg = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_BkgTex, i.uv);
+			bkg = UNITY_SAMPLE_SCREENSPACE_TEXTURE(_BkgTex, uv);
 			bkg.rgb *= _Color.rgb;
 
 			// If CAGE_ONLY use rt alpha
@@ -77,7 +81,7 @@
 
 		// Sample mask
 		#if TUNNEL_MASK
-			bkg.a *= UNITY_SAMPLE_SCREENSPACE_TEXTURE(_MaskTex, i.uv).r;
+			bkg.a *= UNITY_SAMPLE_SCREENSPACE_TEXTURE(_MaskTex, uv).r;
 		#endif
 
 		// Apply color alpha at the end as final factor

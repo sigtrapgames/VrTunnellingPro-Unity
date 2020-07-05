@@ -81,26 +81,29 @@ namespace Sigtrap.VrTunnellingPro {
 		/// Antialiasing modes for cage RenderTexture.
 		/// </summary>
 		public enum MSAA {
-			/// <summary>
-			/// Take MSAA setting from quality settings.
-			/// </summary>
+			///<summary>Take MSAA setting from quality settings.</summary>
 			AUTO,
-			/// <summary>
-			/// Don't use MSAA.
-			/// </summary>
+			///<summary>Don't use MSAA.</summary>
 			OFF,
-			/// <summary>
-			/// 2x MSAA
-			/// </summary>
+			///<summary>2x MSAA</summary>
 			X2,
-			/// <summary>
-			/// 4x MSAA
-			/// </summary>
+			///<summary>4x MSAA</summary>
 			X4,
-			/// <summary>
-			/// 8x MSAA
-			/// </summary>
+			///<summary>8x MSAA</summary>
 			X8
+		}
+		/// <summary>
+		/// How to calculate effect radius according to motion and force effect value.
+		/// </summary>
+		public enum ForceVignetteMode {
+			///<summary>Do not force effect value</summary>
+			NONE = 0,
+			///<summary>Ignore motion and force effect value</summary>
+			CONSTANT = 10,
+			///<summary>Take the maximum of force value and motion value</summary>
+			MAX = 20,
+			///<summary>Take the minimum of force value and motion value</summary>
+			MIN = 30
 		}
 		#endregion
 
@@ -270,6 +273,20 @@ namespace Sigtrap.VrTunnellingPro {
 		/// </summary>
 		public float velocitySmoothing = 0.15f;
 		#endregion
+
+		#region Force Vignette
+		/// <summary>
+		/// How to combine <see cref="forceVignetteValue"/> with motion value to calculate effect radius.
+		/// </summary>
+		[Tooltip("How to combine Force Vignette Value with motion value to calculate effect radius.")]
+		public ForceVignetteMode forceVignetteMode;
+		/// <summary>
+		/// Force effect to be this value.<br />
+		/// Combined with motion value according to <see cref="forceVignetteMode"/>.
+		/// </summary>
+		[Range(0f,1f)][Tooltip("Force vignette radius to this value.\nCombined with motion value according to Force Vignette Mode.")]
+		public float forceVignetteValue;
+		#endregion
 		#endregion
 
 		#region Motion Effects
@@ -387,8 +404,6 @@ namespace Sigtrap.VrTunnellingPro {
 		#region Debug
 		#if UNITY_EDITOR
 		#pragma warning disable 0414
-		bool _debugForceOn = false;
-		float _debugForceValue = 0;
 		bool _debugMotionCalculations = false;
 		float _debugAv, _debugLa, _debugLv;
 		#pragma warning restore 0414
@@ -455,6 +470,9 @@ namespace Sigtrap.VrTunnellingPro {
 			if (p.overrideFramerateDivision) framerateDivision = p.framerateDivision;
 			if (p.overrideDivideTranslation) divideTranslation = p.divideTranslation;
 			if (p.overrideDividerotation) divideRotation = p.divideRotation;
+
+			if (p.overrideForceVignetteMode) forceVignetteMode = p.forceVignetteMode;
+			if (p.overrideForceVignetteValue) forceVignetteValue = p.forceVignetteValue;
 		}
 
 		protected void FillMaskBuffer(UnityEngine.Rendering.CommandBuffer cb, List<Renderer> rs, Material m){
@@ -670,12 +688,21 @@ namespace Sigtrap.VrTunnellingPro {
 				accelerationStrength = prevLaStr;
 				velocityStrength = prevLvStr;
 			}
+			#endif
 
 			// Use forced value
-			if (_debugForceOn){
-				return Mathf.Clamp01(RemapRadius(_debugForceValue) * RemapRadius(effectCoverage));
+			float forceValue = RemapRadius(forceVignetteValue) * RemapRadius(effectCoverage);
+			switch (forceVignetteMode){
+				case ForceVignetteMode.CONSTANT:
+					fx = forceValue;
+					break;
+				case ForceVignetteMode.MAX:
+					fx = Mathf.Max(forceValue, fx);
+					break;
+				case ForceVignetteMode.MIN:
+					fx = Mathf.Min(forceValue, fx);
+					break;
 			}
-			#endif
 
 			return Mathf.Clamp01(fx);
 		}

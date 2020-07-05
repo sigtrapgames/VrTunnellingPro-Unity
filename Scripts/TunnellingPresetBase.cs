@@ -140,5 +140,20 @@ namespace Sigtrap.VrTunnellingPro {
 		public bool overrideDividerotation {get {return _overrideDivideRotation || overrideAll;}}
 		#endregion
 		#endregion
+
+		#region Force Effect
+		[SerializeField]
+		TunnellingBase.ForceVignetteMode _forceVignetteMode;
+		public TunnellingBase.ForceVignetteMode forceVignetteMode {get {return _forceVignetteMode;}}
+		[SerializeField]
+		bool _overrideForceVignetteMode = true;
+		public bool overrideForceVignetteMode {get {return _overrideForceVignetteMode || overrideAll;}}
+		[SerializeField][Range(0f,1f)]
+		float _forceVignetteValue = 0;
+		public float forceVignetteValue {get {return _forceVignetteValue;}}
+		[SerializeField]
+		bool _overrideForceVignetteValue = true;
+		public bool overrideForceVignetteValue {get {return _overrideForceVignetteValue || overrideAll;}}
+		#endregion
 	}
 }

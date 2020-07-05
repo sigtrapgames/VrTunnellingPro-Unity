@@ -46,6 +46,9 @@ namespace Sigtrap.VrTunnellingPro.Editors {
 		protected SerializedPropertyPair _pDivideTranslation = new SerializedPropertyPair("_divideTranslation");
 		protected SerializedPropertyPair _pDivideRotation = new SerializedPropertyPair("_divideRotation");
 
+		protected SerializedPropertyPair _pForceVigMode = new SerializedPropertyPair("_forceVignetteMode");
+		protected SerializedPropertyPair _pForceVigVal = new SerializedPropertyPair("_forceVignetteValue");
+
 		Texture _headerLogo;
 
 		bool _overrideAll;
@@ -62,7 +65,8 @@ namespace Sigtrap.VrTunnellingPro.Editors {
 				_pEffectCoverage, _pEffectColor, _pEffectFeather, _pApplyColor, _pSkybox,
 				_pAv, _pLa, _pLv,
 				_pCounterMotion, _pCounterRotationStrength, _pCounterRotationPerAxis,
-				_pArtificialTilt, _pFramerateDivision, _pDivideTranslation, _pDivideRotation
+				_pArtificialTilt, _pFramerateDivision, _pDivideTranslation, _pDivideRotation,
+				_pForceVigMode, _pForceVigVal
 			);
 			CacheProperties();
 		}
@@ -103,6 +107,9 @@ namespace Sigtrap.VrTunnellingPro.Editors {
 				DrawProperty(_pAv, false);
 				DrawProperty(_pLa, false);
 				DrawProperty(_pLv, false);
+				EditorGUILayout.Space();
+				DrawProperty(_pForceVigMode);
+				DrawProperty(_pForceVigVal);
 				--EditorGUI.indentLevel;
 			}
 

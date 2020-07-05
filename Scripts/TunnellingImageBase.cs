@@ -20,7 +20,7 @@ namespace Sigtrap.VrTunnellingPro {
 		const string PATH_WINDOWSHADER = "Window";
 		const string PATH_COPYSHADER = "BlitA";
 		const string PATH_BLURSHADER = "SeparableBlur";
-		const string PATH_IRISSHADER = "TunnellingVertex";
+		const string PATH_IRISSHADER = "TunnellingVertexZ";
 		const string PATH_SKYSPHERESHADER = "Skysphere";
 		const string PATH_SKYSPHEREMESH = "Skysphere";
 		const string PROP_FEATHER = "_Feather";
@@ -180,6 +180,13 @@ namespace Sigtrap.VrTunnellingPro {
 		public BlurKernel blurSamples;
 		#endregion
 
+		/// <summary>
+		/// At start of rendering, fill Z buffer where effect will be to save fillrate on drawing world.<br />
+		/// Disabled with blur or masking.
+		/// </summary>
+		[Tooltip("At start of rendering, fill Z buffer where effect will be to save fillrate on drawing world.\nDisabled with blur or masking.")]
+		public bool irisZRejection = true;
+
 		#region Counter-Motion
 		/// <summary>
 		/// Choose counter-velocity effect implementation, or disable.<br />
@@ -210,15 +217,6 @@ namespace Sigtrap.VrTunnellingPro {
 		[Tooltip("Scale counter-velocity on individual axes.\nMultiplied by Counter Velocity Strength.")]
 		public Vector3 counterVelocityPerAxis = Vector3.one;
 		#endregion
-
-		#region Optimisation
-		/// <summary>
-		/// At start of rendering, fill Z buffer where effect will be to save fillrate on drawing world.<br />
-		/// Disabled with blur or masking.
-		/// </summary>
-		[Tooltip("At start of rendering, fill Z buffer where effect will be to save fillrate on drawing world.\nDisabled with blur or masking.")]
-		public bool irisZRejection = true;
-		#endregion
 		#endregion
 
 		#region Graphics
@@ -243,6 +241,16 @@ namespace Sigtrap.VrTunnellingPro {
 			}
 		}
 		private bool _drawIris {get {return irisZRejection && _canDrawIris;}}
+		bool _isInstanced {
+			get {
+			#if UNITY_2018_3_OR_NEWER
+				return UnityEngine.XR.XRSettings.stereoRenderingMode == UnityEngine.XR.XRSettings.StereoRenderingMode.SinglePassInstanced ||
+					UnityEngine.XR.XRSettings.stereoRenderingMode == UnityEngine.XR.XRSettings.StereoRenderingMode.SinglePassMultiview;
+			#else
+				return false;
+			#endif
+			}
+		}
 
 		protected abstract CameraEvent _maskCmdEvt { get; }
 
@@ -317,9 +325,12 @@ namespace Sigtrap.VrTunnellingPro {
 
 			_matTunnel = new Material(Shader.Find(PATH_SHADERS + PATH_TUNNELSHADER));
 			_matMask = new Material(Shader.Find(PATH_SHADERS + PATH_MASKSHADER));
+			_matMask.enableInstancing = true;
 			_matWindow = new Material(Shader.Find(PATH_SHADERS + PATH_WINDOWSHADER));
+			_matWindow.enableInstancing = true;
 			_matCopyAlpha = new Material(Shader.Find(PATH_SHADERS + PATH_COPYSHADER));
 			_matBlur = new Material(Shader.Find(PATH_SHADERS + PATH_BLURSHADER));
+			_matBlur.enableInstancing = true;
 			_matSkysphere = new Material(Shader.Find(PATH_SHADERS + PATH_SKYSPHERESHADER));
 			_meshSkysphere = Resources.Load<Mesh>(PATH_MESHES + PATH_SKYSPHEREMESH);
 
@@ -600,7 +611,11 @@ namespace Sigtrap.VrTunnellingPro {
 			if (usingMask || _usingCageRt){
 				if (_usingCageRt) {
 					// Set render target and blit bkg colour
+				#if UNITY_2017_4_OR_NEWER	// Allow for SP Instanced
+					Graphics.SetRenderTarget(_cageRt, 0, CubemapFace.Unknown, -1);
+				#else
 					Graphics.SetRenderTarget(_cageRt);
+				#endif
 					Color bkg = effectColor;
 					bkg.a = backgroundMode == TunnellingBase.BackgroundMode.CAGE_ONLY ? 0 : 1;
 					GL.Clear(true, true, bkg);
@@ -639,6 +654,7 @@ namespace Sigtrap.VrTunnellingPro {
 					}
 				}
 
+				var tt = Camera.current.targetTexture;
 				_matTunnel.SetTexture(_propBkgRt, _cageRt);
 				_matTunnel.SetTexture(_propMaskRt, _maskRt);
 			} else {
@@ -676,8 +692,8 @@ namespace Sigtrap.VrTunnellingPro {
 							_cmPos += _cageParent.transform.InverseTransformVector(d);
 							break;
 						case CounterVelocityMode.REAL:
-							_cmPos += d;
-							_cageParent.transform.position = motionTarget.TransformVector(_cmPos);
+							_cmPos += motionTarget.transform.InverseTransformVector(d);
+							_cageParent.transform.localPosition = _cmPos;
 							break;
 					}
 				}
@@ -779,6 +795,12 @@ namespace Sigtrap.VrTunnellingPro {
 			}
 			return msaa;
 		}
+		void SetTexArrayIfNeeded(RenderTexture target){
+			if (_isInstanced){
+				target.dimension = TextureDimension.Tex2DArray;
+				target.volumeDepth = 2;
+			}
+		}
 		void UpdateRenderTextures(int srcX, int srcY, int srcMsaa){
 			bool changeRes = (srcX != _rtX || srcY != _rtY || srcMsaa != _rtA);
 			bool updated = false;
@@ -794,15 +816,17 @@ namespace Sigtrap.VrTunnellingPro {
 
 				int x = srcX / (cageDownsample+1);
 				int y = srcY / (cageDownsample+1);
-				#if UNITY_2017_2_OR_NEWER
-				RenderTextureDescriptor cageRtd = new RenderTextureDescriptor(x, y, RenderTextureFormat.Default, 24);
+			#if UNITY_2017_2_OR_NEWER
+				var cageRtd = new RenderTextureDescriptor(x, y, RenderTextureFormat.Default, 24);
 				cageRtd.vrUsage = UnityEngine.XR.XRSettings.eyeTextureDesc.vrUsage;
 				_cageRt = new RenderTexture(cageRtd);
-				#else
+			#else
 				_cageRt = new RenderTexture(x, y, 24);
-				#endif
-				_cageRt.antiAliasing = GetMsaa(cageAntiAliasing, srcMsaa);
-				_cageRt.name = "VTP Background";
+			#endif
+
+				_cageRt.antiAliasing = GetMsaa(cageAntiAliasing, srcMsaa);				
+				_cageRt.name = "VRTP Background";
+				SetTexArrayIfNeeded(_cageRt);
 				_cageRt.Create();
 
 				_lastCageDownsample = cageDownsample;
@@ -815,10 +839,16 @@ namespace Sigtrap.VrTunnellingPro {
 				if (_maskRt != null){
 					_maskRt.Release();
 				}
-
+			#if UNITY_2017_2_OR_NEWER
+				var maskRtd = new RenderTextureDescriptor(srcX, srcY, RenderTextureFormat.R8);
+				maskRtd.vrUsage = UnityEngine.XR.XRSettings.eyeTextureDesc.vrUsage;
+				_maskRt = new RenderTexture(maskRtd);
+			#else
 				_maskRt = new RenderTexture(srcX, srcY, 16, RenderTextureFormat.R8);
+			#endif
 				_maskRt.antiAliasing = srcMsaa; //GetMsaa(maskAntiAliasing, srcMsaa);
-				_maskRt.name = "VTP Mask";
+				_maskRt.name = "VRTP Mask";
+				SetTexArrayIfNeeded(_maskRt);
 				_maskRt.Create();
 
 				ResetMaskCommandBuffer();
@@ -841,17 +871,19 @@ namespace Sigtrap.VrTunnellingPro {
 
 				int x = srcX / (blurDownsample+1);
 				int y = srcY / (blurDownsample+1);
-				#if UNITY_2017_2_OR_NEWER
+			#if UNITY_2017_2_OR_NEWER
 				RenderTextureDescriptor blurRtd = new RenderTextureDescriptor(x, y, RenderTextureFormat.Default, 0);
 				blurRtd.vrUsage = UnityEngine.XR.XRSettings.eyeTextureDesc.vrUsage;
 				_blurRt0 = new RenderTexture(blurRtd);
 				_blurRt1 = new RenderTexture(blurRtd);
-				#else
+			#else
 				_blurRt0 = new RenderTexture(x, y, 0);
 				_blurRt1 = new RenderTexture(x, y, 0);
-				#endif
-				_blurRt0.name = "VTP Blur 0";
-				_blurRt1.name = "VTP Blur 1";
+			#endif
+				_blurRt0.name = "VRTP Blur 0";
+				_blurRt1.name = "VRTP Blur 1";
+				SetTexArrayIfNeeded(_blurRt0);
+				SetTexArrayIfNeeded(_blurRt1);
 				_blurRt0.Create();
 				_blurRt1.Create();
 				UpdateBlurKernel();
@@ -876,10 +908,19 @@ namespace Sigtrap.VrTunnellingPro {
 			_maskCmd.Clear();
 
 			// Set color target to our RT, clear, but keep z buffer
+			
+		#if UNITY_2017_4_OR_NEWER	// Allow for SP Instanced
+			_maskCmd.SetRenderTarget(
+				new RenderTargetIdentifier(_maskRt),
+				new RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget),
+				0, CubemapFace.Unknown, -1
+			);
+		#else
 			_maskCmd.SetRenderTarget(
 				new RenderTargetIdentifier(_maskRt), 
 				new RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget)
 			);
+		#endif
 			_maskCmd.ClearRenderTarget(false, true, Color.white);
 
 			// Draw each listed mesh

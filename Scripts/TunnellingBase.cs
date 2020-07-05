@@ -1,7 +1,7 @@
-///////////////////////////////////////////////////////////////
-//     Copyright 2018 Sigtrap Ltd. All rights reserved.      //
-//  www.sigtrapgames.com/VrTunnellingPro @sigtrapgames.com   //
-///////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+//  Copyright 2018-2019 Sigtrap Ltd. All rights reserved.  //
+//   www.sigtrapgames.com/VrTunnellingPro @sigtrapgames    //
+/////////////////////////////////////////////////////////////
 
 using System.Collections;
 using System.Collections.Generic;
@@ -15,11 +15,11 @@ namespace Sigtrap.VrTunnellingPro {
 	public abstract class TunnellingBase : MonoBehaviour {
 		#region Version Info
 		//! @cond
-		public const string VRTP_VERSION = "1.2.0b1";
+		public const string VRTP_VERSION = "1.3.0";
 		public const int VRTP_VERSION_MAJOR = 1;
-		public const int VRTP_VERSION_MINOR = 2;
+		public const int VRTP_VERSION_MINOR = 3;
 		public const int VRTP_VERSION_PATCH = 0;
-		public const string VRTP_VERSION_BETA = "b1";
+		public const string VRTP_VERSION_BETA = "";
 		//! @endcond
 		#endregion
 

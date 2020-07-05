@@ -41,10 +41,13 @@ This mode replaces the colored vignette with a cubemap-base skybox cage anchored
     **SKYBOX** mode. A cubemap skybox is drawn in the vignette.
 </div>
 
-\page mcage CAGE_COLOR & CAGE_SKYBOX Modes
-This mode replaces the colored vignette with a fully 3D cage anchored to the **Motion Transform**. This is a highly flexible way to give the user a static reference frame instead of just fade out the "real" world.
+\page mcage CAGE Modes
+These modes replace the colored vignette with a fully 3D cage anchored to the **Motion Transform**. This is a highly flexible way to give the user a static reference frame instead of just fade out the "real" world.
 
-\ref mskybox "SKYBOX Mode" will often be slightly faster, but the **CAGE** modes allow easy editing, depth perception and moving objects as desired. **CAGE_COLOR** draws 3D objects on a plain color background, while **CAGE_SKYBOX** uses a cubemap background.
+\ref mskybox "SKYBOX Mode" will often be slightly faster, but the **CAGE** modes allow easy editing, depth perception and moving objects as desired. The CAGE modes work as follows.
+- **CAGE_COLOR** draws 3D objects on a plain color background.
+- **CAGE_SKYBOX** uses a cubemap background.
+- **CAGE_OVERLAY** draws the cage directly on the VR world, without a background. This allows for a "fake cockpit" effect amongst others.
 
 > **TIP:** VRTP includes starter cage cubemaps in *VrTunnellingPro/Prefabs/Skyboxes*. By default these import at low res. For full quality, switch to 4096.
 
@@ -66,7 +69,7 @@ The **Fogged** shaders use settings from the *Tunnelling* effect in the **Fog Se
 ## Settings
 <div class="boxout">
     ![CAGE_SKYBOX mode settings](../img/cageSettings.png)
-    **CAGE_SKYBOX** mode settings. **CAGE_COLOR** mode is identical but<br>
+    **CAGE_SKYBOX** mode settings. The other modes are identical but<br>
     without the **Effect Skybox** field.
 </div>
 

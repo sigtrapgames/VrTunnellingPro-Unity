@@ -103,7 +103,9 @@ namespace Sigtrap.VrTunnellingPro {
 			///<summary>Take the maximum of force value and motion value</summary>
 			MAX = 20,
 			///<summary>Take the minimum of force value and motion value</summary>
-			MIN = 30
+			MIN = 30,
+			///<summary>Add force effect value and motion value</summary>
+			ADD = 40
 		}
 		#endregion
 
@@ -589,8 +591,25 @@ namespace Sigtrap.VrTunnellingPro {
 				fx += _accelSmoothed * accelerationStrength;
 			};
 
+			// Apply forced value
+			switch (forceVignetteMode){
+				case ForceVignetteMode.CONSTANT:
+					fx = forceVignetteValue;
+					break;
+				case ForceVignetteMode.MAX:
+					fx = Mathf.Max(forceVignetteValue, fx);
+					break;
+				case ForceVignetteMode.MIN:
+					fx = Mathf.Min(forceVignetteValue, fx);
+					break;
+				case ForceVignetteMode.ADD:
+					fx = forceVignetteValue + fx;
+					break;
+			}
+
 			// Clamp and scale final effect strength
 			fx = RemapRadius(fx) * RemapRadius(effectCoverage);
+			fx = Mathf.Clamp01(fx);
 
 			#region Motion Effects
 			#region Artificial Tilt
@@ -690,21 +709,7 @@ namespace Sigtrap.VrTunnellingPro {
 			}
 			#endif
 
-			// Use forced value
-			float forceValue = RemapRadius(forceVignetteValue) * RemapRadius(effectCoverage);
-			switch (forceVignetteMode){
-				case ForceVignetteMode.CONSTANT:
-					fx = forceValue;
-					break;
-				case ForceVignetteMode.MAX:
-					fx = Mathf.Max(forceValue, fx);
-					break;
-				case ForceVignetteMode.MIN:
-					fx = Mathf.Min(forceValue, fx);
-					break;
-			}
-
-			return Mathf.Clamp01(fx);
+			return fx;
 		}
 		
 		public static Vector3 SmoothDampAngle(Vector3 current, Vector3 target, ref Vector3 vel, float smoothTime, float maxSpeed, float dT){

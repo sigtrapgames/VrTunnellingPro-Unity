@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEditor;
 
 namespace Sigtrap.VrTunnellingPro.Editors {
-	[CustomEditor(typeof(TunnellingPreset))]
+	[CustomEditor(typeof(TunnellingPreset)), CanEditMultipleObjects]
 	public class VrTunnellingProPresetEditor : VrTunnellingProPresetEditorBase {
 		protected override string HEADER_LOGO_NAME {get {return "VrTunnellingProPresetLogo";}}
 

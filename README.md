@@ -32,6 +32,8 @@ Additionally, the periphery can be replaced with static imagery to counteract mo
 * Masking
   * Exclude objects from the tunnelling effect
     * e.g. static cockpit to help ground users
+* Motion compensation options
+  * Includes counter-rotation, counter-motion and stepped motion effects
 * Fully configurable
   * Tweak any settings in-editor or at runtime for full control
   * Preset system
@@ -41,10 +43,14 @@ Additionally, the periphery can be replaced with static imagery to counteract mo
 * Compatible with Multipass and Single Pass Stereo
 * High performance
 
-## Roadmap
-We are working on multiple new techniques which are being developed on the *dev* branch. These include counter-optic flow, artificial tilt and more. For full details please see the Oculus Connect 5 talk linked above.
+## Unreal Engine 4
+VRTP is also available for Unreal Engine 4 via [github](https://github.com/sigtrapgames/VrTunnellingPro-UE4) and the [UE4 Marketplace](https://www.unrealengine.com/marketplace/en-US/product/vr-tunnelling-pro/).
 
-We are also working on the Unreal Engine 4 version which will be available on our Github and on the Marketplace.
+## Roadmap
+* Support for Universal Render Pipeline (URP) is planned, although there is no timeline on this as yet. 
+* Support for the High Definition Render Pipeline (HDRP) is desired, but not currently in development.
+
+Currently, URP (including legacy LWRP) and HDRP users are advised to use the Tunnelling Mobile version of the effect, which is more restricted in features but works with SRP.
 
 ## Documentation
 HTML documentation (mirroring that at the official docs URL) can be generated using Doxygen. If you have Doxygen installed on Windows, you can just run `Docs~/BuildDoxygen.bat` to do so. The *Docs~* folder will be ignored by Unity, and the resulting HTML docs will be ignored by git.

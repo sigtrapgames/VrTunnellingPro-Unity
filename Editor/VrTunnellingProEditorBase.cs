@@ -156,6 +156,11 @@ namespace Sigtrap.VrTunnellingPro.Editors {
 		#endregion
 		#endregion
 
+		#region Force Effect
+		AutoProperty _pForceVigMode = new AutoProperty("forceVignetteMode");
+		AutoProperty _pForceVigVal = new AutoProperty("forceVignetteValue");
+		#endregion
+
 		#region Labels
 		// Angular velocity labels
 		GUIContent _gcAvStr, _gcAvMin, _gcAvMax, _gcAvSmooth;
@@ -179,13 +184,11 @@ namespace Sigtrap.VrTunnellingPro.Editors {
 
 		#region Debug
 		protected bool _showDebug = false;
-		FieldInfo _fiDebugForceOn, _fiDebugForceVal;
 		FieldInfo _fiDebugMotion, _fiDebugAv, _fiDebugLa, _fiDebugLv;
 		float _debugAvMax, _debugLaMax, _debugLvMax;
 		const string DEBUG_MOTION_FORMAT = "{0:0.0000}";
 
 		GUIContent _gcDebugLabel = new GUIContent("Debug / Diagnostics", "Editor-only debug info.");
-		GUIContent _gcDebugForceOn = new GUIContent("Force Effect", "Use a constant value for the effect rather than motion.");
 		GUIContent _gcDebugMotion = new GUIContent("Motion Analyzer", "Show calculated motion data to help fine-tune settings.");
 
 		GUIContent _gcDebugAvLabel = new GUIContent("Angular", "Current Angular Velocity [Degrees per Second]");
@@ -218,7 +221,8 @@ namespace Sigtrap.VrTunnellingPro.Editors {
 				_pCounterMotion, _pCounterRotStr, _pCounterRotAxs,
 				_pMotionEffectTarget,
 				_pArtTilt, _pArtTiltStr, _pArtTiltMax, _pArtTiltSmooth,
-				_pDivFps, _pDivTrans, _pDivRot
+				_pDivFps, _pDivTrans, _pDivRot,
+				_pForceVigMode, _pForceVigVal
 			);
 
 			SectionToggle.Init(serializedObject, _showMotionDetection, _showMotionEffects);
@@ -245,8 +249,6 @@ namespace Sigtrap.VrTunnellingPro.Editors {
 			_fiDebugAv = typeof(TunnellingBase).GetField("_debugAv", BindingFlags.Instance | BindingFlags.NonPublic);
 			_fiDebugLa = typeof(TunnellingBase).GetField("_debugLa", BindingFlags.Instance | BindingFlags.NonPublic);
 			_fiDebugLv = typeof(TunnellingBase).GetField("_debugLv", BindingFlags.Instance | BindingFlags.NonPublic);
-			_fiDebugForceOn = typeof(TunnellingBase).GetField("_debugForceOn", BindingFlags.Instance | BindingFlags.NonPublic);
-			_fiDebugForceVal = typeof(TunnellingBase).GetField("_debugForceValue", BindingFlags.Instance | BindingFlags.NonPublic);
 
 			CacheProperties();
 
@@ -312,20 +314,6 @@ namespace Sigtrap.VrTunnellingPro.Editors {
 				--EditorGUI.indentLevel;
 
 				if (_showDebug) {
-					bool forceOn = (bool)_fiDebugForceOn.GetValue(_tb);
-					float forceValue = (float)_fiDebugForceVal.GetValue(_tb);
-					EditorGUI.BeginChangeCheck();
-					forceOn = EditorGUILayout.ToggleLeft(_gcDebugForceOn, forceOn, VrtpStyles.sectionHeader);
-					if (forceOn){
-						++EditorGUI.indentLevel;
-						forceValue = EditorGUILayout.Slider("Strength", forceValue, 0, 1);
-						--EditorGUI.indentLevel;
-					}
-					if (EditorGUI.EndChangeCheck()){
-						_fiDebugForceOn.SetValue(_tb, forceOn);
-						_fiDebugForceVal.SetValue(_tb, forceValue);
-					}
-
 					bool showMotionDebug = (bool)_fiDebugMotion.GetValue(_tb);
 					EditorGUI.BeginChangeCheck();
 					showMotionDebug = EditorGUILayout.ToggleLeft(_gcDebugMotion, showMotionDebug, VrtpStyles.sectionHeader);
@@ -443,6 +431,14 @@ namespace Sigtrap.VrTunnellingPro.Editors {
 							--EditorGUI.indentLevel;
 						}
 					} VrtpStyles.EndChildBox();
+					#endregion
+
+					#region Force Vignette
+					EditorGUILayout.Space();
+					VrtpEditorUtils.PropertyField(_pForceVigMode);
+					if (_pForceVigMode.p.intValue != (int)TunnellingBase.ForceVignetteMode.NONE){
+						VrtpEditorUtils.PropertyField(_pForceVigVal);
+					}
 					#endregion
 				}
 			} VrtpStyles.EndSectionBox();

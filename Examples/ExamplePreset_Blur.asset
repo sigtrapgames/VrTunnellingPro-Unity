@@ -57,6 +57,10 @@ MonoBehaviour:
   _overrideDivideTranslation: 1
   _divideRotation: 1
   _overrideDivideRotation: 1
+  _forceVignetteMode: 0
+  _overrideForceVignetteMode: 0
+  _forceVignetteValue: 0
+  _overrideForceVignetteValue: 0
   _effectOverlay: 0
   _overrideEffectOverlay: 0
   _backgroundMode: 5

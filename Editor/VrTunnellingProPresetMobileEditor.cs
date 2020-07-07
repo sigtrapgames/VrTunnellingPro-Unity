@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEditor;
 
 namespace Sigtrap.VrTunnellingPro.Editors {
-	[CustomEditor(typeof(TunnellingPresetMobile))]
+	[CustomEditor(typeof(TunnellingPresetMobile)), CanEditMultipleObjects]
 	public class VrTunnellingProPresetMobileEditor : VrTunnellingProPresetEditorBase {
 		protected override string HEADER_LOGO_NAME {get {return "VrTunnellingProMobilePresetLogo";}}
 
@@ -27,13 +27,13 @@ namespace Sigtrap.VrTunnellingPro.Editors {
 			_showEffectSettings = EditorGUILayout.Foldout(_showEffectSettings, "Effect Settings", VrtpStyles.sectionFoldout);
 			if (_showEffectSettings){
 				++EditorGUI.indentLevel;
-				DrawProperty(_pEffectColor, true);
-				DrawProperty(_pEffectCoverage, true);
-				DrawProperty(_pEffectFeather, true);
-				DrawProperty(_pApplyColor, true);
-				DrawProperty(_pDrawSkybox, true);
-				DrawProperty(_pSkybox, true);
-				DrawProperty(_pDrawBeforeTransparent, true);
+				DrawProperty(_pEffectColor);
+				DrawProperty(_pEffectCoverage);
+				DrawProperty(_pEffectFeather);
+				DrawProperty(_pApplyColor);
+				DrawProperty(_pDrawSkybox);
+				DrawProperty(_pSkybox);
+				DrawProperty(_pDrawBeforeTransparent);
 				--EditorGUI.indentLevel;
 			}
 
@@ -42,10 +42,10 @@ namespace Sigtrap.VrTunnellingPro.Editors {
 			_showMaskSettings = EditorGUILayout.Foldout(_showMaskSettings, "Mask Settings", VrtpStyles.sectionFoldout);
 			if (_showMaskSettings){
 				++EditorGUI.indentLevel;
-				DrawProperty(_pUseMask, true);
-				DrawProperty(_pStencilReference, true);
-				DrawProperty(_pStencilMask, true);
-				DrawProperty(_pStencilBias, true);
+				DrawProperty(_pUseMask);
+				DrawProperty(_pStencilReference);
+				DrawProperty(_pStencilMask);
+				DrawProperty(_pStencilBias);
 				--EditorGUI.indentLevel;
 			}
 

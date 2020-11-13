@@ -5,16 +5,16 @@ using UnityEngine.Rendering;
 
 namespace Sigtrap.VrTunnellingPro {
 	/// <summary>
-	/// Mobile-friendly tunnelling effect for legacy pipeline.<br />
+	/// Mobile-friendly tunnelling effect for Universal Render Pipeline.<br />
 	/// This script does not use post-processing. Limited to color, skybox and simple mask modes.
 	/// </summary>
-	public class TunnellingMobile : TunnellingMobileBase {
+	public class TunnellingMobileURP : TunnellingMobileBase {
 		/// <summary>
 		/// Singleton instance.<br />
-		/// Refers to a <see cref="TunnellingMobile"/> effect.<br />
+		/// Refers to a <see cref="TunnellingMobileURP"/> effect.<br />
 		/// Will not refer to a <see cref="Tunnelling"/> or <see cref="TunnellingOpaque"/> effect.
 		/// </summary>
-		public static new TunnellingMobile instance { get; private set; }
+		public static TunnellingMobileURP instance { get; private set; }
 
         protected override void Awake(){
             base.Awake();
@@ -24,8 +24,21 @@ namespace Sigtrap.VrTunnellingPro {
 			}
 			instance = this;
         }
+        protected override void OnEnable(){
+            base.OnEnable();
+
+			RenderPipelineManager.beginCameraRendering -= BeforeRender;
+			RenderPipelineManager.beginCameraRendering += BeforeRender;
+        }
+		void OnDisable(){
+			RenderPipelineManager.beginCameraRendering -= BeforeRender;
+		}
         
-		void OnPreRender(){
+		void BeforeRender(ScriptableRenderContext context, Camera cam){
+			if (cam != _cam){
+				return;
+			}
+
 			UpdateEyeMatrices();
 			ApplyEyeMatrices(_irisMatOuter);
 			ApplyEyeMatrices(_irisMatInner);

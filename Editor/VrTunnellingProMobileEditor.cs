@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEditor;
 
 namespace Sigtrap.VrTunnellingPro.Editors {
-	[CustomEditor(typeof(TunnellingMobile), true)]
+	[CustomEditor(typeof(TunnellingMobileBase), true)]
 	public class VrTunnellingProMobileEditor : VrTunnellingProEditorBase {
 		override protected string HEADER_LOGO_NAME {get {return "VrTunnellingProMobileLogo";}}
 		AutoProperty _pDrawSkybox = new AutoProperty("drawSkybox");
@@ -13,13 +13,13 @@ namespace Sigtrap.VrTunnellingPro.Editors {
 		AutoProperty _pStencilMask = new AutoProperty("stencilMask");
 		AutoProperty _pStencilBias = new AutoProperty("stencilBias");
 		AutoProperty _pDrawBeforeTransparent = new AutoProperty("drawBeforeTransparent");
-		TunnellingMobile _tm;
+		TunnellingMobileBase _tm;
 
 		GUIContent _gcApplyColor = new GUIContent("Apply Color", "Apply Effect Color to Skybox");
 
 		protected override void CacheProperties(){
 			InitAps(_pDrawSkybox, _pUseMask, _pStencilRef, _pStencilMask, _pStencilBias, _pDrawBeforeTransparent);
-			_tm = (TunnellingMobile)target;
+			_tm = (TunnellingMobileBase)target;
 		}
 
 		protected override void DrawSettings(){

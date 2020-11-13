@@ -28,15 +28,15 @@ namespace Sigtrap.VrTunnellingPro {
 		}
 		void OnEnable(){
 			if (!_started) return;
-			if (TunnellingMobile.instance) {
-				TunnellingMobile.instance.AddObjectToMask(_r, autoAddChildren);
+			if (TunnellingMobileBase.instance) {
+				TunnellingMobileBase.instance.AddObjectToMask(_r, autoAddChildren);
 			} else {
 				Debug.LogWarning("No VrTunnellingPro instance found");
 			}
 		}
 		void OnDisable(){
-			if (TunnellingMobile.instance) {
-				TunnellingMobile.instance.RemoveObjectFromMask(_r, autoAddChildren);
+			if (TunnellingMobileBase.instance) {
+				TunnellingMobileBase.instance.RemoveObjectFromMask(_r, autoAddChildren);
 			} else {
 				Debug.LogWarning("No VrTunnellingPro instance found");
 			}

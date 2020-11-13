@@ -85,7 +85,7 @@ namespace Sigtrap.VrTunnellingPro {
 		/// <summary>
 		/// Singleton instance.<br />
 		/// Will refer to either a <see cref="Tunnelling"/> or <see cref="TunnellingOpaque"/> effect.<br />
-		/// Will not refer to a <see cref="TunnellingMobile"/> effect.
+		/// Will not refer to a <see cref="TunnellingMobileBase"/> effect.
 		/// </summary>
 		public static TunnellingImageBase instance { get; private set; }
 

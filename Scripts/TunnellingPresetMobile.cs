@@ -4,8 +4,8 @@ using UnityEngine;
 
 namespace Sigtrap.VrTunnellingPro {
 	/// <summary>
-	/// Preset for <see cref="TunnellingMobile"/>.<br />
-	/// Apply using <see cref="TunnellingMobile.ApplyPreset"/>.<br />
+	/// Preset for <see cref="TunnellingMobileBase"/>.<br />
+	/// Apply using <see cref="TunnellingMobileBase.ApplyPreset"/>.<br />
 	/// Create and modify via Unity editor.
 	/// </summary>
 	[CreateAssetMenu(menuName=  "VrTunnellingPro/Tunnelling Mobile Preset", order = 1)]
